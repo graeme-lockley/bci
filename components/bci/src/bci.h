@@ -10,7 +10,10 @@ typedef enum
     INTERPRET_OK,
     INTERPRET_IP_OUT_OF_RANGE,
     INTERPRET_INVALID_INSTRUCTION,
-    INTERPRET_STACK_OVERFLOW
+    INTERPRET_STACK_OVERFLOW,
+    INTERPRET_STACK_UNDERFLOW,
+    INTERPRET_INVALID_ARGUMENT_TYPES,
+    INTERPRET_DIVISION_BY_ZERO
 } InterpretResultCode;
 
 typedef struct
@@ -34,12 +37,30 @@ typedef struct
     int32_t ip;
 } StackOverflowError;
 
+typedef struct
+{
+    int32_t ip;
+} StackUnderflowError;
+
+typedef struct
+{
+    int32_t ip;
+    unsigned char instruction;
+} InvalidArgumentTypesError;
+
+typedef struct {
+    int32_t ip;
+} DivisionByZeroError;
+
 typedef union
 {
     OKResult ok;
     IPOutOfRangeError ip_out_of_range;
     InvalidInstructionError invalid_instruction;
     StackOverflowError stack_overflow;
+    StackUnderflowError stack_underflow;
+    InvalidArgumentTypesError invalid_argument_types;
+    DivisionByZeroError division_by_zero;
 } ResultDetail;
 
 typedef struct
@@ -56,7 +77,7 @@ typedef enum
 
 typedef union
 {
-    int32_t i;
+    int32_t s32;
 } ValueContent;
 
 typedef struct
