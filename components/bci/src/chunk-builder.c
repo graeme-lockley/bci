@@ -34,6 +34,13 @@ void chunk_builder_append(ChunkBuilder *builder, Op op)
     builder->buffer[builder->count++] = op;
 }
 
+void chunk_builder_append_i(ChunkBuilder *builder, Op op, int v) {
+    reserve_size(builder, 1 + sizeof(int));
+    builder->buffer[builder->count++] = op;
+    memcpy(builder->buffer + builder->count, &v, sizeof(int));
+    builder->count += sizeof(int);    
+}
+
 Chunk *chunk_builder_build(ChunkBuilder *builder)
 {
     Chunk *chunk = chunk_new_populate(builder->buffer, builder->count);

@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "chunk.h"
 #include "memory.h"
 #include "op.h"
@@ -30,6 +32,18 @@ void bci_freeVM(VM *vm)
     }                                              \
     unsigned char v = code[vm->ip++];
 
+#define READ_S32_INTO(v)                           \
+    if (vm->ip + sizeof(int) >= size)              \
+    {                                              \
+        InterpretResult result;                    \
+        result.code = INTERPRET_IP_OUT_OF_RANGE;   \
+        result.detail.ip_out_of_range.ip = vm->ip; \
+        return result;                             \
+    }                                              \
+    int value;                                     \
+    memcpy(&value, code + vm->ip, sizeof(int));    \
+    vm->ip += sizeof(int);
+
 InterpretResult bci_run(VM *vm)
 {
     char *code = vm->chunk->code;
@@ -41,12 +55,28 @@ InterpretResult bci_run(VM *vm)
 
         switch (instruction)
         {
+        case OP_PUSH_S32:
+        {
+            READ_S32_INTO(value);
+            if (vm->sp == STACK_SIZE)
+            {
+                InterpretResult result;
+                result.code = INTERPRET_STACK_OVERFLOW;
+                result.detail.stack_overflow.ip = vm->ip;
+                return result;
+            }
+
+            vm->stack[vm->sp].type = VT_S32;
+            vm->stack[vm->sp++].detail.i = value;
+
+            break;
+        }
         case OP_RET:
         {
             InterpretResult result;
 
             result.code = INTERPRET_OK;
-            result.detail.ok.result = 0;
+            result.detail.ok.result = vm->sp == 0 || vm->stack[vm->sp - 1].type != VT_S32 ? 0 : vm->stack[vm->sp - 1].detail.i;
 
             return result;
         }

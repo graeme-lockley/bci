@@ -12,7 +12,10 @@ typedef struct
 } ChunkBuilder;
 
 extern ChunkBuilder *chunk_builder_new(void);
+
 extern void chunk_builder_append(ChunkBuilder *builder, Op op);
+extern void chunk_builder_append_i(ChunkBuilder *builder, Op op, int v);
+    
 extern Chunk *chunk_builder_build(ChunkBuilder *builder);
 
 #endif

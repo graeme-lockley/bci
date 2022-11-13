@@ -6,12 +6,8 @@
 
 #include "minunit.h"
 
-char *suite_chunk(void)
+static InterpretResult run_chunk(ChunkBuilder *builder)
 {
-    ChunkBuilder *builder = chunk_builder_new();
-
-    chunk_builder_append(builder, OP_RET);
-
     Chunk *chunk = chunk_builder_build(builder);
 
     VM *vm = bci_initVM_populate(chunk);
@@ -20,8 +16,42 @@ char *suite_chunk(void)
 
     bci_freeVM(vm);
 
+    return result;
+}
+
+static char *op_ret_with_empty_stack(void)
+{
+    ChunkBuilder *builder = chunk_builder_new();
+
+    chunk_builder_append(builder, OP_RET);
+
+    InterpretResult result = run_chunk(builder);
+
     mu_assert(result.code == INTERPRET_OK, "Expected no error");
     mu_assert(result.detail.ok.result == 0, "Expected ok result to be 0");
+
+    return NULL;
+}
+
+static char *op_ret_with_value(void)
+{
+    ChunkBuilder *builder = chunk_builder_new();
+
+    chunk_builder_append_i(builder, OP_PUSH_S32, 42);
+    chunk_builder_append(builder, OP_RET);
+
+    InterpretResult result = run_chunk(builder);
+
+    mu_assert(result.code == INTERPRET_OK, "Expected no error");
+    mu_assert(result.detail.ok.result == 42, "Expected ok result to be 42");
+
+    return NULL;
+}
+
+char *suite_chunk(void)
+{
+    mu_run_test(op_ret_with_empty_stack);
+    mu_run_test(op_ret_with_value);
 
     return NULL;
 }
