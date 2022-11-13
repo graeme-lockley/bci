@@ -7,9 +7,9 @@
 
 #ifdef DEBUG_MEMORY
 
-extern char *memory_alloc(int size, char *file, int line);
-extern void memory_free(void *ptr, char *file, int line);
-extern int memory_allocated(void);
+extern char *memory_alloc(int32_t size, char *file, int line);
+extern void memory_free(void *ptr, char *file, int32_t line);
+extern int32_t memory_allocated(void);
 
 #define ALLOCATE(type, count) \
     (type *)memory_alloc(sizeof(type) * (count), __FILE__, __LINE__)

@@ -18,11 +18,11 @@ ChunkBuilder *chunk_builder_new(void)
     return sb;
 }
 
-static void reserve_size(ChunkBuilder *sb, int count)
+static void reserve_size(ChunkBuilder *sb, int32_t count)
 {
     if (sb->count + count >= sb->size)
     {
-        int new_buffer_size = sb->count + count + BUFFER_TRANCHE;
+        int32_t new_buffer_size = sb->count + count + BUFFER_TRANCHE;
         sb->buffer = REALLOCATE(sb->buffer, char, new_buffer_size);
         sb->size = new_buffer_size;
     }
@@ -34,11 +34,11 @@ void chunk_builder_append(ChunkBuilder *builder, Op op)
     builder->buffer[builder->count++] = op;
 }
 
-void chunk_builder_append_i(ChunkBuilder *builder, Op op, int v) {
-    reserve_size(builder, 1 + sizeof(int));
+void chunk_builder_append_i(ChunkBuilder *builder, Op op, int32_t v) {
+    reserve_size(builder, 1 + sizeof(int32_t));
     builder->buffer[builder->count++] = op;
-    memcpy(builder->buffer + builder->count, &v, sizeof(int));
-    builder->count += sizeof(int);    
+    memcpy(builder->buffer + builder->count, &v, sizeof(int32_t));
+    builder->count += sizeof(int32_t);    
 }
 
 Chunk *chunk_builder_build(ChunkBuilder *builder)

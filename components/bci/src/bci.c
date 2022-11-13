@@ -22,32 +22,29 @@ void bci_freeVM(VM *vm)
     FREE(vm);
 }
 
-#define READ_BYTE_INTO(v)                          \
-    if (vm->ip >= size)                            \
+#define CHECK_CODE_SIZE(n)                         \
+    if (vm->ip + n - 1 >= size)                    \
     {                                              \
         InterpretResult result;                    \
         result.code = INTERPRET_IP_OUT_OF_RANGE;   \
         result.detail.ip_out_of_range.ip = vm->ip; \
         return result;                             \
-    }                                              \
+    }
+
+#define READ_BYTE_INTO(v) \
+    CHECK_CODE_SIZE(1);   \
     unsigned char v = code[vm->ip++];
 
-#define READ_S32_INTO(v)                           \
-    if (vm->ip + sizeof(int) >= size)              \
-    {                                              \
-        InterpretResult result;                    \
-        result.code = INTERPRET_IP_OUT_OF_RANGE;   \
-        result.detail.ip_out_of_range.ip = vm->ip; \
-        return result;                             \
-    }                                              \
-    int value;                                     \
-    memcpy(&value, code + vm->ip, sizeof(int));    \
-    vm->ip += sizeof(int);
+#define READ_S32_INTO(v)                            \
+    CHECK_CODE_SIZE(sizeof(int32_t))                \
+    int32_t value;                                      \
+    memcpy(&value, code + vm->ip, sizeof(int32_t)); \
+    vm->ip += sizeof(int32_t);
 
 InterpretResult bci_run(VM *vm)
 {
     char *code = vm->chunk->code;
-    const int size = vm->chunk->size;
+    const int32_t size = vm->chunk->size;
 
     for (;;)
     {

@@ -15,23 +15,23 @@ typedef enum
 
 typedef struct
 {
-    int result;
+    int32_t result;
 } OKResult;
 
 typedef struct
 {
-    int ip;
+    int32_t ip;
 } IPOutOfRangeError;
 
 typedef struct
 {
-    int ip;
+    int32_t ip;
     unsigned char instruction;
 } InvalidInstructionError;
 
 typedef struct
 {
-    int ip;
+    int32_t ip;
 } StackOverflowError;
 
 typedef union
@@ -56,7 +56,7 @@ typedef enum
 
 typedef union
 {
-    int i;
+    int32_t i;
 } ValueContent;
 
 typedef struct
@@ -68,9 +68,9 @@ typedef struct
 typedef struct
 {
     Chunk *chunk;
-    int ip;
+    int32_t ip;
     Value stack[STACK_SIZE];
-    int sp;
+    int32_t sp;
 } VM;
 
 extern VM *bci_initVM_populate(Chunk *chunk);

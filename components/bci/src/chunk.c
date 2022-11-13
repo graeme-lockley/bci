@@ -3,7 +3,7 @@
 #include "chunk.h"
 #include "memory.h"
 
-Chunk *chunk_new_populate(char *code, int size)
+Chunk *chunk_new_populate(char *code, int32_t size)
 {
     Chunk *chunk = ALLOCATE(Chunk, 1);
 
