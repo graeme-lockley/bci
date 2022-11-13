@@ -34,7 +34,7 @@ void chunk_builder_append(ChunkBuilder *builder, Op op)
     builder->buffer[builder->count++] = op;
 }
 
-void chunk_builder_append_i(ChunkBuilder *builder, Op op, int32_t v) {
+void chunk_builder_append_s32(ChunkBuilder *builder, Op op, int32_t v) {
     reserve_size(builder, 1 + sizeof(int32_t));
     builder->buffer[builder->count++] = op;
     memcpy(builder->buffer + builder->count, &v, sizeof(int32_t));

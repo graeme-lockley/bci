@@ -14,7 +14,7 @@ typedef struct
 extern ChunkBuilder *chunk_builder_new(void);
 
 extern void chunk_builder_append(ChunkBuilder *builder, Op op);
-extern void chunk_builder_append_i(ChunkBuilder *builder, Op op, int32_t v);
+extern void chunk_builder_append_s32(ChunkBuilder *builder, Op op, int32_t v);
     
 extern Chunk *chunk_builder_build(ChunkBuilder *builder);
 

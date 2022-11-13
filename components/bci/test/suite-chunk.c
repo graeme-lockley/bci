@@ -37,7 +37,7 @@ static char *op_ret_with_value(void)
 {
     ChunkBuilder *builder = chunk_builder_new();
 
-    chunk_builder_append_i(builder, OP_PUSH_S32, 42);
+    chunk_builder_append_s32(builder, OP_PUSH_S32, 42);
     chunk_builder_append(builder, OP_RET);
 
     InterpretResult result = run_chunk(builder);
