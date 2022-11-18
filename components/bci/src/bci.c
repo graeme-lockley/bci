@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 
 #include "chunk.h"
@@ -41,45 +42,155 @@ void bci_freeVM(VM *vm)
     memcpy(&value, code + vm->ip, sizeof(int32_t)); \
     vm->ip += sizeof(int32_t);
 
-#define PEEK(n) vm->stack[vm->sp - n - 1]
-
-#define VALIDATE_STACK_UNDERFLOW(n)                \
-    if (vm->sp < n)                                \
-    {                                              \
-        InterpretResult result;                    \
-        result.code = INTERPRET_STACK_UNDERFLOW;   \
-        result.detail.stack_underflow.ip = vm->ip; \
-        return result;                             \
-    }
-
-#define VALIDATE_STACK_OVERFLOW(n)                \
-    if (vm->sp + n - 1 == STACK_SIZE)             \
-    {                                             \
-        InterpretResult result;                   \
-        result.code = INTERPRET_STACK_OVERFLOW;   \
-        result.detail.stack_overflow.ip = vm->ip; \
-        return result;                            \
-    }
-
-#define VALIDATE_ARGUMENT_TYPE(v, t)                                    \
-    if (v.type != t)                                                    \
-    {                                                                   \
-        InterpretResult result;                                         \
-        result.code = INTERPRET_INVALID_ARGUMENT_TYPES;                 \
-        result.detail.invalid_argument_types.ip = vm->ip;               \
-        result.detail.invalid_argument_types.instruction = instruction; \
-        return result;                                                  \
-    }
-
 #define S32_OPERATOR(op)                                                                                     \
-    VALIDATE_STACK_UNDERFLOW(2);                                                                             \
-    VALIDATE_ARGUMENT_TYPE(PEEK(0), VT_S32);                                                                 \
-    VALIDATE_ARGUMENT_TYPE(PEEK(1), VT_S32);                                                                 \
     vm->stack[vm->sp - 2].detail.s32 = vm->stack[vm->sp - 2].detail.s32 op vm->stack[vm->sp - 1].detail.s32; \
     vm->sp--;
 
+static InterpretResult verifyBlock(VM *vm)
+{
+    char *code = vm->chunk->code;
+    const int32_t size = vm->chunk->size;
+
+    int32_t ip = 0;
+    int32_t sp = 0;
+    ValueType stack[STACK_SIZE];
+
+    for (;;)
+    {
+        if (ip >= vm->chunk->size)
+        {
+            InterpretResult result;
+
+            result.code = INTERPRET_BLOCK_INCORRECTLY_TERMINATED;
+            result.detail.block_incorrectly_terminated.ip = ip;
+
+            return result;
+        }
+        Op op = vm->chunk->code[ip];
+        ip += 1;
+        switch (op)
+        {
+        case OP_PUSH_TRUE:
+        case OP_PUSH_FALSE:
+            if (sp == STACK_SIZE)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_STACK_OVERFLOW;
+                result.detail.stack_overflow.ip = ip;
+
+                return result;
+            }
+            stack[sp] = VT_BOOL;
+            sp += 1;
+            break;
+        case OP_PUSH_S32:
+            if (sp == STACK_SIZE)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_STACK_OVERFLOW;
+                result.detail.stack_overflow.ip = ip;
+
+                return result;
+            }
+            if (ip + sizeof(int32_t) >= vm->chunk->size)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_BLOCK_INCORRECTLY_TERMINATED;
+                result.detail.block_incorrectly_terminated.ip = ip;
+
+                return result;
+            }
+            stack[sp] = VT_S32;
+            sp += 1;
+            ip += sizeof(int32_t);
+            break;
+        case OP_ADD_S32:
+        case OP_SUB_S32:
+        case OP_MUL_S32:
+        case OP_DIV_S32:
+            if (sp < 2)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_STACK_UNDERFLOW;
+                result.detail.stack_underflow.ip = ip;
+
+                return result;
+            }
+            else if (stack[sp - 1] != VT_S32 || stack[sp - 2] != VT_S32)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_INVALID_ARGUMENT_TYPES;
+                result.detail.invalid_argument_types.ip = ip;
+                result.detail.invalid_argument_types.instruction = op;
+
+                return result;
+            }
+            sp -= 1;
+            break;
+        case OP_RET:
+            if (ip != vm->chunk->size)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_RET_MUST_TERMINATE_BLOCK;
+                result.detail.ret_must_terminate_block.ip = ip;
+
+                return result;
+            }
+            else if (sp > 1)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_RET_INVALID_STACK;
+                result.detail.ret_must_terminate_block.ip = ip;
+
+                return result;
+            }
+            else if (sp == 1 && stack[0] != VT_S32)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_INVALID_ARGUMENT_TYPES;
+                result.detail.invalid_argument_types.ip = ip;
+                result.detail.invalid_argument_types.instruction = op;
+
+                return result;
+            }
+            else
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_OK;
+
+                return result;
+            }
+        default:
+        {
+            InterpretResult result;
+
+            result.code = INTERPRET_INVALID_INSTRUCTION;
+            result.detail.invalid_instruction.ip = ip;
+            result.detail.invalid_instruction.instruction = op;
+
+            return result;
+        }
+        }
+    }
+}
+
 InterpretResult bci_run(VM *vm)
 {
+    InterpretResult result = verifyBlock(vm);
+    if (result.code != INTERPRET_OK)
+    {
+        return result;
+    }
+
     char *code = vm->chunk->code;
     const int32_t size = vm->chunk->size;
 
@@ -106,9 +217,6 @@ InterpretResult bci_run(VM *vm)
         }
         case OP_DIV_S32:
         {
-            VALIDATE_STACK_UNDERFLOW(2);
-            VALIDATE_ARGUMENT_TYPE(PEEK(0), VT_S32);
-            VALIDATE_ARGUMENT_TYPE(PEEK(1), VT_S32);
             if (vm->stack[vm->sp - 1].detail.s32 == 0)
             {
                 InterpretResult result;
@@ -123,8 +231,6 @@ InterpretResult bci_run(VM *vm)
         }
         case OP_PUSH_TRUE:
         {
-            VALIDATE_STACK_OVERFLOW(1);
-
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 1;
             vm->sp++;
@@ -133,8 +239,6 @@ InterpretResult bci_run(VM *vm)
         }
         case OP_PUSH_FALSE:
         {
-            VALIDATE_STACK_OVERFLOW(1);
-
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 1;
             vm->sp++;
@@ -143,11 +247,11 @@ InterpretResult bci_run(VM *vm)
         }
         case OP_PUSH_S32:
         {
-            VALIDATE_STACK_OVERFLOW(1);
             READ_S32_INTO(value);
 
             vm->stack[vm->sp].type = VT_S32;
-            vm->stack[vm->sp++].detail.s32 = value;
+            vm->stack[vm->sp].detail.s32 = value;
+            vm->sp++;
 
             break;
         }
@@ -173,5 +277,3 @@ InterpretResult bci_run(VM *vm)
         }
     }
 }
-
-#undef READ_BYTE

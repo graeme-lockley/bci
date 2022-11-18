@@ -13,7 +13,10 @@ typedef enum
     INTERPRET_STACK_OVERFLOW,
     INTERPRET_STACK_UNDERFLOW,
     INTERPRET_INVALID_ARGUMENT_TYPES,
-    INTERPRET_DIVISION_BY_ZERO
+    INTERPRET_DIVISION_BY_ZERO,
+    INTERPRET_BLOCK_INCORRECTLY_TERMINATED,
+    INTERPRET_RET_MUST_TERMINATE_BLOCK,
+    INTERPRET_RET_INVALID_STACK,
 } InterpretResultCode;
 
 typedef struct
@@ -52,6 +55,21 @@ typedef struct {
     int32_t ip;
 } DivisionByZeroError;
 
+typedef struct
+{
+    int32_t ip;
+} BlockIncorrectlyTerminatedError;
+
+typedef struct
+{
+    int32_t ip;
+} RETMustTerminateBlockError;
+
+typedef struct
+{
+    int32_t ip;
+} RETInvalidStackError;
+
 typedef union
 {
     OKResult ok;
@@ -61,6 +79,9 @@ typedef union
     StackUnderflowError stack_underflow;
     InvalidArgumentTypesError invalid_argument_types;
     DivisionByZeroError division_by_zero;
+    BlockIncorrectlyTerminatedError block_incorrectly_terminated;
+    RETMustTerminateBlockError ret_must_terminate_block;
+    RETInvalidStackError ret_invalid_stack;
 } ResultDetail;
 
 typedef struct
