@@ -1,17 +1,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "chunk.h"
+#include "block.h"
 #include "memory.h"
 #include "op.h"
 
 #include "bci.h"
 
-VM *bci_initVM_populate(Chunk *chunk)
+VM *bci_initVM_populate(Block *block)
 {
     VM *vm = ALLOCATE(VM, 1);
 
-    vm->chunk = chunk;
+    vm->block = block;
     vm->ip = 0;
     vm->sp = 0;
 
@@ -20,7 +20,7 @@ VM *bci_initVM_populate(Chunk *chunk)
 
 void bci_freeVM(VM *vm)
 {
-    chunk_free(vm->chunk);
+    block_free(vm->block);
     FREE(vm);
 }
 
@@ -49,8 +49,8 @@ void bci_freeVM(VM *vm)
 
 static InterpretResult verifyBlock(VM *vm)
 {
-    char *code = vm->chunk->code;
-    const int32_t size = vm->chunk->size;
+    char *code = vm->block->code;
+    const int32_t size = vm->block->size;
 
     int32_t ip = 0;
     int32_t sp = 0;
@@ -58,7 +58,7 @@ static InterpretResult verifyBlock(VM *vm)
 
     for (;;)
     {
-        if (ip >= vm->chunk->size)
+        if (ip >= vm->block->size)
         {
             InterpretResult result;
 
@@ -67,7 +67,7 @@ static InterpretResult verifyBlock(VM *vm)
 
             return result;
         }
-        Op op = vm->chunk->code[ip];
+        Op op = vm->block->code[ip];
         ip += 1;
         switch (op)
         {
@@ -95,7 +95,7 @@ static InterpretResult verifyBlock(VM *vm)
 
                 return result;
             }
-            if (ip + sizeof(int32_t) >= vm->chunk->size)
+            if (ip + sizeof(int32_t) >= vm->block->size)
             {
                 InterpretResult result;
 
@@ -134,7 +134,7 @@ static InterpretResult verifyBlock(VM *vm)
             sp -= 1;
             break;
         case OP_RET:
-            if (ip != vm->chunk->size)
+            if (ip != vm->block->size)
             {
                 InterpretResult result;
 
@@ -161,7 +161,7 @@ static InterpretResult verifyBlock(VM *vm)
                 return result;
             }
         case OP_RET_BOOL:
-            if (ip != vm->chunk->size)
+            if (ip != vm->block->size)
             {
                 InterpretResult result;
 
@@ -198,7 +198,7 @@ static InterpretResult verifyBlock(VM *vm)
                 return result;
             }
         case OP_RET_S32:
-            if (ip != vm->chunk->size)
+            if (ip != vm->block->size)
             {
                 InterpretResult result;
 
@@ -261,8 +261,8 @@ InterpretResult bci_run(VM *vm)
         return result;
     }
 
-    char *code = vm->chunk->code;
-    const int32_t size = vm->chunk->size;
+    char *code = vm->block->code;
+    const int32_t size = vm->block->size;
 
     for (;;)
     {

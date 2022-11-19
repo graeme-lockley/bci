@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../src/chunk.h"
-#include "../src/chunk-builder.h"
+#include "../src/block.h"
+#include "../src/block-builder.h"
 #include "../src/bci.h"
 
 #include "minunit.h"
@@ -49,11 +49,11 @@ static char *trim_preserve(char *input)
     return trim(strdup(input));
 }
 
-static char *run_test(char *scenario, Chunk *chunk, char *expected_result)
+static char *run_test(char *scenario, Block *block, char *expected_result)
 {
     mu_run_test_label_start(scenario);
 
-    VM *vm = bci_initVM_populate(chunk);
+    VM *vm = bci_initVM_populate(block);
     InterpretResult result = bci_run(vm);
     bci_freeVM(vm);
 
@@ -66,47 +66,47 @@ static char *run_test(char *scenario, Chunk *chunk, char *expected_result)
     return NULL;
 }
 
-void append(ChunkBuilder *cb, char *trimmed)
+void append(BlockBuilder *cb, char *trimmed)
 {
     if (strcmp(trimmed, "ADD_S32") == 0)
     {
-        chunk_builder_append(cb, OP_ADD_S32);
+        block_builder_append(cb, OP_ADD_S32);
     }
     else if (strcmp(trimmed, "DIV_S32") == 0)
     {
-        chunk_builder_append(cb, OP_DIV_S32);
+        block_builder_append(cb, OP_DIV_S32);
     }
     else if (strcmp(trimmed, "MUL_S32") == 0)
     {
-        chunk_builder_append(cb, OP_MUL_S32);
+        block_builder_append(cb, OP_MUL_S32);
     }
     else if (strcmp(trimmed, "SUB_S32") == 0)
     {
-        chunk_builder_append(cb, OP_SUB_S32);
+        block_builder_append(cb, OP_SUB_S32);
     }
     else if (strcmp(trimmed, "PUSH_FALSE") == 0)
     {
-        chunk_builder_append(cb, OP_PUSH_FALSE);
+        block_builder_append(cb, OP_PUSH_FALSE);
     }
     else if (strcmp(trimmed, "PUSH_TRUE") == 0)
     {
-        chunk_builder_append(cb, OP_PUSH_TRUE);
+        block_builder_append(cb, OP_PUSH_TRUE);
     }
     else if (strcmp(trimmed, "RET") == 0)
     {
-        chunk_builder_append(cb, OP_RET);
+        block_builder_append(cb, OP_RET);
     }
     else if (strcmp(trimmed, "RET_BOOL") == 0)
     {
-        chunk_builder_append(cb, OP_RET_BOOL);
+        block_builder_append(cb, OP_RET_BOOL);
     }
     else if (strcmp(trimmed, "RET_S32") == 0)
     {
-        chunk_builder_append(cb, OP_RET_S32);
+        block_builder_append(cb, OP_RET_S32);
     }
     else if (strncmp(trimmed, "PUSH_S32 ", 8) == 0)
     {
-        chunk_builder_append_s32(cb, OP_PUSH_S32, atoi(trimmed + 9));
+        block_builder_append_s32(cb, OP_PUSH_S32, atoi(trimmed + 9));
     }
     else
     {
@@ -128,7 +128,7 @@ char *test_file(char *filename)
     int test_state = 0;
 
     char *test_scenario = NULL;
-    ChunkBuilder *cb = NULL;
+    BlockBuilder *cb = NULL;
     while (1)
     {
         char *line = NULL;
@@ -150,7 +150,7 @@ char *test_file(char *filename)
         if (line[0] == '.' && test_state == 0)
         {
             test_scenario = trim_preserve(line + 1);
-            cb = chunk_builder_new();
+            cb = block_builder_new();
             test_state = 1;
         }
         else if (line[0] == '>')
@@ -159,10 +159,10 @@ char *test_file(char *filename)
             {
                 char *expected_result = trim_preserve(line + 1);
                 test_state = 0;
-                Chunk *chunk = chunk_builder_build(cb);
+                Block *block = block_builder_build(cb);
                 cb = NULL;
 
-                char *result = run_test(test_scenario, chunk, expected_result);
+                char *result = run_test(test_scenario, block, expected_result);
 
                 free(test_scenario);
                 test_scenario = NULL;

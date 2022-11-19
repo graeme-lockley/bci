@@ -1,16 +1,16 @@
 #include <stdio.h>
 
 #include "../src/bci.h"
-#include "../src/chunk-builder.h"
-#include "../src/chunk.h"
+#include "../src/block-builder.h"
+#include "../src/block.h"
 
 #include "minunit.h"
 
-static InterpretResult run_chunk(ChunkBuilder *builder)
+static InterpretResult run_block(BlockBuilder *builder)
 {
-    Chunk *chunk = chunk_builder_build(builder);
+    Block *block = block_builder_build(builder);
 
-    VM *vm = bci_initVM_populate(chunk);
+    VM *vm = bci_initVM_populate(block);
 
     InterpretResult result = bci_run(vm);
 
@@ -21,11 +21,11 @@ static InterpretResult run_chunk(ChunkBuilder *builder)
 
 static char *op_ret_with_empty_stack(void)
 {
-    ChunkBuilder *builder = chunk_builder_new();
+    BlockBuilder *builder = block_builder_new();
 
-    chunk_builder_append(builder, OP_RET);
+    block_builder_append(builder, OP_RET);
 
-    InterpretResult result = run_chunk(builder);
+    InterpretResult result = run_block(builder);
 
     mu_assert(result.code == INTERPRET_OK, "Expected no error");
     mu_assert(result.detail.ok.result == 0, "Expected ok result to be 0");
@@ -35,12 +35,12 @@ static char *op_ret_with_empty_stack(void)
 
 static char *op_ret_s32_with_value(void)
 {
-    ChunkBuilder *builder = chunk_builder_new();
+    BlockBuilder *builder = block_builder_new();
 
-    chunk_builder_append_s32(builder, OP_PUSH_S32, 42);
-    chunk_builder_append(builder, OP_RET_S32);
+    block_builder_append_s32(builder, OP_PUSH_S32, 42);
+    block_builder_append(builder, OP_RET_S32);
 
-    InterpretResult result = run_chunk(builder);
+    InterpretResult result = run_block(builder);
 
     mu_assert(result.code == INTERPRET_OK, "Expected no error");
     mu_assert(result.detail.ok.result == 42, "Expected ok result to be 42");
@@ -48,7 +48,7 @@ static char *op_ret_s32_with_value(void)
     return NULL;
 }
 
-char *suite_chunk(void)
+char *suite_block(void)
 {
     mu_run_test(op_ret_with_empty_stack);
     mu_run_test(op_ret_s32_with_value);

@@ -1,7 +1,7 @@
 #ifndef BCI_H
 #define BCI_H
 
-#include "chunk.h"
+#include "block.h"
 
 #define STACK_SIZE 256
 #define BCI_VERBOSE
@@ -111,13 +111,13 @@ typedef struct
 
 typedef struct
 {
-    Chunk *chunk;
+    Block *block;
     int32_t ip;
     Value stack[STACK_SIZE];
     int32_t sp;
 } VM;
 
-extern VM *bci_initVM_populate(Chunk *chunk);
+extern VM *bci_initVM_populate(Block *block);
 extern void bci_freeVM(VM *vm);
 
 extern InterpretResult bci_run(VM *vm);
