@@ -13,6 +13,7 @@ VM *bci_initVM_populate(Chunk *chunk)
 
     vm->chunk = chunk;
     vm->ip = 0;
+    vm->sp = 0;
 
     return vm;
 }
@@ -186,6 +187,11 @@ static InterpretResult verifyBlock(VM *vm)
 InterpretResult bci_run(VM *vm)
 {
     InterpretResult result = verifyBlock(vm);
+
+#ifdef BCI_VERBOSE
+    printf("bci_run: verification result: %d\n", result.code);
+#endif
+
     if (result.code != INTERPRET_OK)
     {
         return result;
@@ -196,7 +202,14 @@ InterpretResult bci_run(VM *vm)
 
     for (;;)
     {
+#ifdef BCI_VERBOSE
+        printf("bci_run: ip=%04x", vm->ip);
+#endif
         READ_BYTE_INTO(instruction);
+
+#ifdef BCI_VERBOSE
+        printf(", sp=%04x: %s (%d)\n", vm->sp, Op_name(instruction), instruction);
+#endif
 
         switch (instruction)
         {
@@ -260,7 +273,7 @@ InterpretResult bci_run(VM *vm)
             InterpretResult result;
 
             result.code = INTERPRET_OK;
-            result.detail.ok.result = vm->sp == 0 || vm->stack[vm->sp - 1].type != VT_S32 ? 0 : vm->stack[vm->sp - 1].detail.s32;
+            result.detail.ok.result = vm->sp == 0 ? 0 : vm->stack[vm->sp - 1].detail.s32;
 
             return result;
         }
@@ -285,34 +298,34 @@ char *bci_interpretResult_toString(InterpretResult result)
     switch (result.code)
     {
     case INTERPRET_OK:
-        sprintf(line, "InterpretResult: OK, result: %d", result.detail.ok.result);
+        sprintf(line, "OK, result: %d", result.detail.ok.result);
         break;
     case INTERPRET_INVALID_INSTRUCTION:
-        sprintf(line, "InterpretResult: Invalid instruction %d at %d", result.detail.invalid_instruction.instruction, result.detail.invalid_instruction.ip);
+        sprintf(line, "Invalid instruction %d at %d", result.detail.invalid_instruction.instruction, result.detail.invalid_instruction.ip);
         break;
     case INTERPRET_INVALID_ARGUMENT_TYPES:
-        sprintf(line, "InterpretResult: Invalid argument types for instruction %d at %d", result.detail.invalid_argument_types.instruction, result.detail.invalid_argument_types.ip);
+        sprintf(line, "Invalid argument types for instruction %d at %d", result.detail.invalid_argument_types.instruction, result.detail.invalid_argument_types.ip);
         break;
     case INTERPRET_STACK_OVERFLOW:
-        sprintf(line, "InterpretResult: Stack overflow at %d", result.detail.stack_overflow.ip);
+        sprintf(line, "Stack overflow at %d", result.detail.stack_overflow.ip);
         break;
     case INTERPRET_STACK_UNDERFLOW:
-        sprintf(line, "InterpretResult: Stack underflow at %d", result.detail.stack_underflow.ip);
+        sprintf(line, "Stack underflow at %d", result.detail.stack_underflow.ip);
         break;
     case INTERPRET_BLOCK_INCORRECTLY_TERMINATED:
-        sprintf(line, "InterpretResult: Block incorrectly terminated at %d", result.detail.block_incorrectly_terminated.ip);
+        sprintf(line, "Block incorrectly terminated at %d", result.detail.block_incorrectly_terminated.ip);
         break;
     case INTERPRET_RET_MUST_TERMINATE_BLOCK:
-        sprintf(line, "InterpretResult: Ret must terminate block at %d", result.detail.ret_must_terminate_block.ip);
+        sprintf(line, "Ret must terminate block at %d", result.detail.ret_must_terminate_block.ip);
         break;
     case INTERPRET_RET_INVALID_STACK:
-        sprintf(line, "InterpretResult: Ret invalid stack at %d", result.detail.ret_invalid_stack.ip);
+        sprintf(line, "Ret invalid stack at %d", result.detail.ret_invalid_stack.ip);
         break;
     case INTERPRET_DIVISION_BY_ZERO:
-        sprintf(line, "InterpretResult: Division by zero at %d", result.detail.division_by_zero.ip);
+        sprintf(line, "Division by zero at %d", result.detail.division_by_zero.ip);
         break;
     default:
-        sprintf(line, "InterpretResult: Unknown error");
+        sprintf(line, "Unknown error %d", result.code);
     }
 
     return strdup(line);

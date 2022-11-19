@@ -12,5 +12,10 @@ char *Op_Names[] = {
 
 char *Op_name(Op op)
 {
+    if (op < 0 || op > 7)
+    {
+        return "UNKNOWN";
+    }
+
     return Op_Names[op];
 }

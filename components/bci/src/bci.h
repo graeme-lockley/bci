@@ -4,6 +4,7 @@
 #include "chunk.h"
 
 #define STACK_SIZE 256
+#define BCI_VERBOSE
 
 typedef enum
 {

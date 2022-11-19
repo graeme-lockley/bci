@@ -51,21 +51,21 @@ static char *trim_preserve(char *input)
 
 static char *run_test(char *scenario, Chunk *chunk, char *expected_result)
 {
+    mu_run_test_label(scenario);
+
     VM *vm = bci_initVM_populate(chunk);
     InterpretResult result = bci_run(vm);
     bci_freeVM(vm);
 
     char *r = bci_interpretResult_toString(result);
-    mu_run_test_assert(scenario, strcmp(r + 17, trim_preserve(expected_result)) == 0, r + 17);
+    mu_assert(strcmp(r, expected_result) == 0, r);
     free(r);
 
     return NULL;
 }
 
-void append(ChunkBuilder *cb, char *line)
+void append(ChunkBuilder *cb, char *trimmed)
 {
-    char *trimmed = trim_preserve(line);
-
     if (strcmp(trimmed, "ADD_S32") == 0)
     {
         chunk_builder_append(cb, OP_ADD_S32);
@@ -133,39 +133,41 @@ char *test_file(char *filename)
 
         line = trim(line);
 
-        if (line[0] == '\n')
+        if (line[0] == '\n' || line[0] == '#')
         {
             continue;
         }
-        if (line[0] == '#')
+        if (line[0] == '.' && test_state == 0)
         {
-            if (test_state == 0)
-            {
-                test_scenario = trim_preserve(line + 1);
-                cb = chunk_builder_new();
-                test_state = 1;
-            }
+            test_scenario = trim_preserve(line + 1);
+            cb = chunk_builder_new();
+            test_state = 1;
         }
         else if (line[0] == '>')
         {
-            char *expected_result = trim_preserve(line + 1);
-            test_state = 0;
-            Chunk *chunk = chunk_builder_build(cb);
-            cb = NULL;
-
-            char *result = run_test(test_scenario, chunk, expected_result);
-
-            free(line);
-            line = NULL;
-            free(test_scenario);
-            test_scenario = NULL;
-            free(expected_result);
-            expected_result = NULL;
-
-            if (result != NULL)
+            if (test_state == 1)
             {
-                fclose(fp);
-                return result;
+                char *expected_result = trim_preserve(line + 1);
+                test_state = 0;
+                Chunk *chunk = chunk_builder_build(cb);
+                cb = NULL;
+
+                char *result = run_test(test_scenario, chunk, expected_result);
+
+                free(test_scenario);
+                test_scenario = NULL;
+                free(expected_result);
+                expected_result = NULL;
+
+                if (result != NULL)
+                {
+                    fclose(fp);
+                    return result;
+                }
+            }
+            else
+            {
+                printf("Unexpected >\n");
             }
         }
         else if (test_state == 1)

@@ -1,99 +1,99 @@
-# Block: RET: empty stack
+. Block: RET: empty stack
 RET
 > OK, result: 0
 
-# Block: RET: Invalid argument
+. Block: RET: Invalid argument
 PUSH_TRUE
 RET
 > Invalid argument types for instruction 7 at 2
 
-# Block: RET: Stack too deep
+. Block: RET: Stack too deep
 PUSH_TRUE
 PUSH_S32 10
 RET
 > Ret invalid stack at 7
 
-# Block: ADD_S32
+. Block: ADD_S32
 PUSH_S32 42
 PUSH_S32 -5
 ADD_S32
 RET
 > OK, result: 37
 
-# Block: ADD_S32: Underflow
+. Block: ADD_S32: Underflow
 PUSH_S32 42
 ADD_S32
 RET
 > Stack underflow at 6
 
-# Block: ADD_S32: Invalid Argument
+. Block: ADD_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 ADD_S32
 RET
 > Invalid argument types for instruction 0 at 7
 
-# Block: SUB_S32
+. Block: SUB_S32
 PUSH_S32 42
 PUSH_S32 -5
 SUB_S32
 RET
 > OK, result: 47
 
-# Block: SUB_S32: Underflow
+. Block: SUB_S32: Underflow
 PUSH_S32 42
 SUB_S32
 RET
 > Stack underflow at 6
 
-# Block: SUB_S32: Invalid Argument
+. Block: SUB_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 SUB_S32
 RET
 > Invalid argument types for instruction 3 at 7
 
-# Block: MUL_S32
+. Block: MUL_S32
 PUSH_S32 42
 PUSH_S32 -5
 MUL_S32
 RET
 > OK, result: -210
 
-# Block: MUL_S32: Underflow
+. Block: MUL_S32: Underflow
 PUSH_S32 42
 MUL_S32
 RET
 > Stack underflow at 6
 
-# Block: MUL_S32: Invalid Argument
+. Block: MUL_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 MUL_S32
 RET
 > Invalid argument types for instruction 2 at 7
 
-# Block: DIV_S32
+. Block: DIV_S32
 PUSH_S32 42
 PUSH_S32 -5
 DIV_S32
 RET
 > OK, result: -8
 
-# Block: DIV_S32: Underflow
+. Block: DIV_S32: Underflow
 PUSH_S32 42
 DIV_S32
 RET
 > Stack underflow at 6
 
-# Block: DIV_S32: Invalid Argument
+. Block: DIV_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 DIV_S32
 RET
 > Invalid argument types for instruction 1 at 7
 
-# Block: DIV_S32: Division by zero
+. Block: DIV_S32: Division by zero
 PUSH_S32 42
 PUSH_S32 0
 DIV_S32
