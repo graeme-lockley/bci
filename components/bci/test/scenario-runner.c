@@ -94,6 +94,10 @@ void append(ChunkBuilder *cb, char *trimmed)
     {
         chunk_builder_append(cb, OP_RET);
     }
+    else if (strcmp(trimmed, "RET_BOOL") == 0)
+    {
+        chunk_builder_append(cb, OP_RET_BOOL);
+    }
     else if (strcmp(trimmed, "RET_S32") == 0)
     {
         chunk_builder_append(cb, OP_RET_S32);

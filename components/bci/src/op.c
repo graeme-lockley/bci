@@ -2,6 +2,7 @@
 
 char *Op_Names[] = {
     "RET",
+    "RET_BOOL",
     "RET_S32",
     "ADD_S32",
     "DIV_S32",
@@ -13,7 +14,7 @@ char *Op_Names[] = {
 
 char *Op_name(Op op)
 {
-    if (op < 0 || op > 8)
+    if (op < 0 || op > 9)
     {
         return "UNKNOWN";
     }

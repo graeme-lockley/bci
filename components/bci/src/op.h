@@ -4,6 +4,7 @@
 typedef enum
 {
     OP_RET,
+    OP_RET_BOOL,
     OP_RET_S32,
 
     OP_ADD_S32,

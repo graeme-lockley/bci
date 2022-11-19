@@ -160,6 +160,43 @@ static InterpretResult verifyBlock(VM *vm)
 
                 return result;
             }
+        case OP_RET_BOOL:
+            if (ip != vm->chunk->size)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_RET_MUST_TERMINATE_BLOCK;
+                result.detail.ret_must_terminate_block.ip = ip;
+
+                return result;
+            }
+            else if (sp != 1)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_RET_INVALID_STACK;
+                result.detail.ret_must_terminate_block.ip = ip;
+
+                return result;
+            }
+            else if (stack[0] != VT_BOOL)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_INVALID_ARGUMENT_TYPES;
+                result.detail.invalid_argument_types.ip = ip;
+                result.detail.invalid_argument_types.instruction = op;
+
+                return result;
+            }
+            else
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_OK;
+
+                return result;
+            }
         case OP_RET_S32:
             if (ip != vm->chunk->size)
             {
@@ -304,6 +341,15 @@ InterpretResult bci_run(VM *vm)
 
             return result;
         }
+        case OP_RET_BOOL:
+        {
+            InterpretResult result;
+
+            result.code = INTERPRET_OK;
+            result.detail.ok.result = vm->stack[vm->sp - 1].detail.s32;
+
+            return result;
+        }
         case OP_RET_S32:
         {
             InterpretResult result;
@@ -337,31 +383,31 @@ char *bci_interpretResult_toString(InterpretResult result)
         sprintf(line, "OK, result: %d", result.detail.ok.result);
         break;
     case INTERPRET_INVALID_INSTRUCTION:
-        sprintf(line, "Invalid instruction %d at %d", result.detail.invalid_instruction.instruction, result.detail.invalid_instruction.ip);
+        sprintf(line, "Invalid instruction %s at %04x", Op_name(result.detail.invalid_instruction.instruction), result.detail.invalid_instruction.ip);
         break;
     case INTERPRET_INVALID_ARGUMENT_TYPES:
-        sprintf(line, "Invalid argument types for instruction %d at %d", result.detail.invalid_argument_types.instruction, result.detail.invalid_argument_types.ip);
+        sprintf(line, "Invalid argument types for %s at %04x", Op_name(result.detail.invalid_argument_types.instruction), result.detail.invalid_argument_types.ip);
         break;
     case INTERPRET_STACK_OVERFLOW:
-        sprintf(line, "Stack overflow at %d", result.detail.stack_overflow.ip);
+        sprintf(line, "Stack overflow at %04x", result.detail.stack_overflow.ip);
         break;
     case INTERPRET_STACK_UNDERFLOW:
-        sprintf(line, "Stack underflow at %d", result.detail.stack_underflow.ip);
+        sprintf(line, "Stack underflow at %04x", result.detail.stack_underflow.ip);
         break;
     case INTERPRET_BLOCK_INCORRECTLY_TERMINATED:
-        sprintf(line, "Block incorrectly terminated at %d", result.detail.block_incorrectly_terminated.ip);
+        sprintf(line, "Block incorrectly terminated at %04x", result.detail.block_incorrectly_terminated.ip);
         break;
     case INTERPRET_RET_MUST_TERMINATE_BLOCK:
-        sprintf(line, "Ret must terminate block at %d", result.detail.ret_must_terminate_block.ip);
+        sprintf(line, "Ret must terminate block at %04x", result.detail.ret_must_terminate_block.ip);
         break;
     case INTERPRET_RET_INVALID_STACK:
-        sprintf(line, "Ret invalid stack at %d", result.detail.ret_invalid_stack.ip);
+        sprintf(line, "Ret invalid stack at %04x", result.detail.ret_invalid_stack.ip);
         break;
     case INTERPRET_DIVISION_BY_ZERO:
-        sprintf(line, "Division by zero at %d", result.detail.division_by_zero.ip);
+        sprintf(line, "Division by zero at %04x", result.detail.division_by_zero.ip);
         break;
     default:
-        sprintf(line, "Unknown error %d", result.code);
+        sprintf(line, "Unknown error %04x", result.code);
     }
 
     return strdup(line);

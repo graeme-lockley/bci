@@ -7,7 +7,31 @@ RET
 PUSH_TRUE
 PUSH_S32 10
 RET
-> Ret invalid stack at 7
+> Ret invalid stack at 0007
+
+
+
+### RET_BOOL
+. Block: RET_BOOL True
+PUSH_TRUE
+RET_BOOL
+> OK, result: 1
+
+. Block: RET_BOOL False
+PUSH_FALSE
+RET_BOOL
+> OK, result: 0
+
+. Block: RET_BOOL: Invalid argument
+PUSH_S32 10
+RET_BOOL
+> Invalid argument types for RET_BOOL at 0006
+
+. Block: RET_BOOL: Invalid stack
+PUSH_S32 10
+PUSH_TRUE
+RET_BOOL
+> Ret invalid stack at 0007
 
 
 
@@ -20,13 +44,13 @@ RET_S32
 . Block: RET_S32: Invalid argument
 PUSH_TRUE
 RET_S32
-> Invalid argument types for instruction 1 at 2
+> Invalid argument types for RET_S32 at 0002
 
-. Block: RET: Invalid stack
+. Block: RET_S32: Invalid stack
 PUSH_TRUE
 PUSH_S32 10
 RET_S32
-> Ret invalid stack at 7
+> Ret invalid stack at 0007
 
 
 
@@ -42,14 +66,14 @@ RET_S32
 PUSH_S32 42
 ADD_S32
 RET_S32
-> Stack underflow at 6
+> Stack underflow at 0006
 
 . Block: ADD_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 ADD_S32
 RET_S32
-> Invalid argument types for instruction 2 at 7
+> Invalid argument types for ADD_S32 at 0007
 
 
 
@@ -65,14 +89,14 @@ RET_S32
 PUSH_S32 42
 SUB_S32
 RET_S32
-> Stack underflow at 6
+> Stack underflow at 0006
 
 . Block: SUB_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 SUB_S32
 RET_S32
-> Invalid argument types for instruction 5 at 7
+> Invalid argument types for SUB_S32 at 0007
 
 
 
@@ -88,14 +112,14 @@ RET_S32
 PUSH_S32 42
 MUL_S32
 RET_S32
-> Stack underflow at 6
+> Stack underflow at 0006
 
 . Block: MUL_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 MUL_S32
 RET_S32
-> Invalid argument types for instruction 4 at 7
+> Invalid argument types for MUL_S32 at 0007
 
 
 
@@ -111,18 +135,18 @@ RET_S32
 PUSH_S32 42
 DIV_S32
 RET_S32
-> Stack underflow at 6
+> Stack underflow at 0006
 
 . Block: DIV_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 DIV_S32
 RET_S32
-> Invalid argument types for instruction 3 at 7
+> Invalid argument types for DIV_S32 at 0007
 
 . Block: DIV_S32: Division by zero
 PUSH_S32 42
 PUSH_S32 0
 DIV_S32
 RET_S32
-> Division by zero at 11
+> Division by zero at 000b
