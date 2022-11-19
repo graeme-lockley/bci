@@ -280,7 +280,7 @@ InterpretResult bci_run(VM *vm)
         case OP_PUSH_FALSE:
         {
             vm->stack[vm->sp].type = VT_BOOL;
-            vm->stack[vm->sp].detail.s32 = 1;
+            vm->stack[vm->sp].detail.s32 = 0;
             vm->sp++;
 
             break;
