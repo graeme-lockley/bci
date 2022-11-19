@@ -51,7 +51,8 @@ typedef struct
     unsigned char instruction;
 } InvalidArgumentTypesError;
 
-typedef struct {
+typedef struct
+{
     int32_t ip;
 } DivisionByZeroError;
 
@@ -119,5 +120,7 @@ extern VM *bci_initVM_populate(Chunk *chunk);
 extern void bci_freeVM(VM *vm);
 
 extern InterpretResult bci_run(VM *vm);
+
+extern char *bci_interpretResult_toString(InterpretResult result);
 
 #endif

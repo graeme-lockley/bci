@@ -277,3 +277,43 @@ InterpretResult bci_run(VM *vm)
         }
     }
 }
+
+char *bci_interpretResult_toString(InterpretResult result)
+{
+    char line[256];
+
+    switch (result.code)
+    {
+    case INTERPRET_OK:
+        sprintf(line, "InterpretResult: OK, result: %d", result.detail.ok.result);
+        break;
+    case INTERPRET_INVALID_INSTRUCTION:
+        sprintf(line, "InterpretResult: Invalid instruction %d at %d", result.detail.invalid_instruction.instruction, result.detail.invalid_instruction.ip);
+        break;
+    case INTERPRET_INVALID_ARGUMENT_TYPES:
+        sprintf(line, "InterpretResult: Invalid argument types for instruction %d at %d", result.detail.invalid_argument_types.instruction, result.detail.invalid_argument_types.ip);
+        break;
+    case INTERPRET_STACK_OVERFLOW:
+        sprintf(line, "InterpretResult: Stack overflow at %d", result.detail.stack_overflow.ip);
+        break;
+    case INTERPRET_STACK_UNDERFLOW:
+        sprintf(line, "InterpretResult: Stack underflow at %d", result.detail.stack_underflow.ip);
+        break;
+    case INTERPRET_BLOCK_INCORRECTLY_TERMINATED:
+        sprintf(line, "InterpretResult: Block incorrectly terminated at %d", result.detail.block_incorrectly_terminated.ip);
+        break;
+    case INTERPRET_RET_MUST_TERMINATE_BLOCK:
+        sprintf(line, "InterpretResult: Ret must terminate block at %d", result.detail.ret_must_terminate_block.ip);
+        break;
+    case INTERPRET_RET_INVALID_STACK:
+        sprintf(line, "InterpretResult: Ret invalid stack at %d", result.detail.ret_invalid_stack.ip);
+        break;
+    case INTERPRET_DIVISION_BY_ZERO:
+        sprintf(line, "InterpretResult: Division by zero at %d", result.detail.division_by_zero.ip);
+        break;
+    default:
+        sprintf(line, "InterpretResult: Unknown error");
+    }
+
+    return strdup(line);
+}

@@ -2,11 +2,11 @@ CC=clang -Ofast
 CFLAGS=-pedantic 
 LDFLAGS=
 
-SRC_OBJECTS=src/bci.o src/chunk.o src/chunk-builder.o src/memory.o
+SRC_OBJECTS=src/bci.o src/chunk.o src/chunk-builder.o src/memory.o src/op.c
 SRC_MAIN_OBJECTS=src/main.o
 SRC_TARGETS=src/main
 
-TEST_OBJECTS=test/minunit.o test/suite-chunk.o
+TEST_OBJECTS=test/minunit.o test/scenario-runner.o test/suite-chunk.o
 TEST_MAIN_OBJECTS=test/test-main.o
 TEST_TARGETS=test/test-runner
 

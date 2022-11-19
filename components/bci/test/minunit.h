@@ -5,7 +5,7 @@
  * Based on: http://www.jera.com/techinfo/jtns/jtn002.html
  */
 
-#define VERBOSE_MINUNIT 2
+#define VERBOSE_MINUNIT 1
 
 #define mu_assert(test, message)         \
     do                                   \
@@ -18,6 +18,16 @@
 
 #define mu_assert_label(test) mu_assert(test, #test)
 #define mu_test_label(test) #test
+
+#define mu_run_test_assert(test, check, message) \
+    do                                           \
+    {                                            \
+        if (VERBOSE_MINUNIT > 0)                 \
+            printf("  Test: %s\n", test);        \
+        tests_run++;                             \
+        mu_assert(check, message);               \
+        tests_passed++;                          \
+    } while (0)
 
 #define mu_run_test(test)                                \
     do                                                   \

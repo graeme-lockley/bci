@@ -15,4 +15,7 @@ typedef enum
     OP_RET
 } Op;
 
+extern char *Op_Names[];
+extern char *Op_name(Op op);
+
 #endif

@@ -15,6 +15,18 @@
         printf(". Skipping %s\n", #name); \
     }
 
+#define TEST_FILE_RUNNER(name)           \
+    if (result == NULL)                  \
+    {                                    \
+        char *test_file(char *fn);       \
+        printf(". Running %s\n", name);  \
+        result = test_file(name);        \
+    }                                    \
+    else                                 \
+    {                                    \
+        printf(". Skipping %s\n", name); \
+    }
+
 int main(void)
 {
     char *result = NULL;
@@ -25,6 +37,7 @@ int main(void)
 #endif
 
     TEST_SUITE(suite_chunk);
+    TEST_FILE_RUNNER("./test/block-scenarios.txt");
 
     if (result == NULL)
     {
