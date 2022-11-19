@@ -150,3 +150,15 @@ PUSH_S32 0
 DIV_S32
 RET_S32
 > Division by zero at 000b
+
+
+
+# ### JMP
+# . Block: JMP
+# BLOCK: MAIN
+# JMP BLOCK1
+
+# BLOCK: BLOCK1
+# RET
+
+# > OK, result: 0

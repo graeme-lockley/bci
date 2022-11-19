@@ -51,7 +51,7 @@ static char *trim_preserve(char *input)
 
 static char *run_test(char *scenario, Chunk *chunk, char *expected_result)
 {
-    mu_run_test_label(scenario);
+    mu_run_test_label_start(scenario);
 
     VM *vm = bci_initVM_populate(chunk);
     InterpretResult result = bci_run(vm);
@@ -60,6 +60,8 @@ static char *run_test(char *scenario, Chunk *chunk, char *expected_result)
     char *r = bci_interpretResult_toString(result);
     mu_assert(strcmp(r, expected_result) == 0, r);
     free(r);
+
+    mu_run_test_label_end();
 
     return NULL;
 }

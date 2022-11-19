@@ -37,7 +37,7 @@ int main(void)
 #endif
 
     TEST_SUITE(suite_chunk);
-    TEST_FILE_RUNNER("./test/block-scenarios.txt");
+    TEST_FILE_RUNNER("./test/block-scenarios.test");
 
     if (result == NULL)
     {

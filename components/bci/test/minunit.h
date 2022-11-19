@@ -29,12 +29,18 @@
         tests_passed++;                          \
     } while (0)
 
-#define mu_run_test_label(label)           \
+#define mu_run_test_label_start(label)     \
     do                                     \
     {                                      \
         if (VERBOSE_MINUNIT > 0)           \
             printf("  Test: %s\n", label); \
         tests_run++;                       \
+    } while (0)
+
+#define mu_run_test_label_end(label) \
+    do                               \
+    {                                \
+        tests_passed += 1;           \
     } while (0)
 
 #define mu_run_test(test)                                \
