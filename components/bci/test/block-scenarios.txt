@@ -1,102 +1,128 @@
+### RET
 . Block: RET: empty stack
 RET
 > OK, result: 0
 
-. Block: RET: Invalid argument
-PUSH_TRUE
-RET
-> Invalid argument types for instruction 7 at 2
-
-. Block: RET: Stack too deep
+. Block: RET: Invalid stack
 PUSH_TRUE
 PUSH_S32 10
 RET
 > Ret invalid stack at 7
 
+
+
+### RET_S32
+. Block: RET_S32
+PUSH_S32 100
+RET_S32
+> OK, result: 100
+
+. Block: RET_S32: Invalid argument
+PUSH_TRUE
+RET_S32
+> Invalid argument types for instruction 1 at 2
+
+. Block: RET: Invalid stack
+PUSH_TRUE
+PUSH_S32 10
+RET_S32
+> Ret invalid stack at 7
+
+
+
+### ADD_S32
 . Block: ADD_S32
 PUSH_S32 42
 PUSH_S32 -5
 ADD_S32
-RET
+RET_S32
 > OK, result: 37
 
 . Block: ADD_S32: Underflow
 PUSH_S32 42
 ADD_S32
-RET
+RET_S32
 > Stack underflow at 6
 
 . Block: ADD_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 ADD_S32
-RET
-> Invalid argument types for instruction 0 at 7
+RET_S32
+> Invalid argument types for instruction 2 at 7
 
+
+
+### SUB_S32
 . Block: SUB_S32
 PUSH_S32 42
 PUSH_S32 -5
 SUB_S32
-RET
+RET_S32
 > OK, result: 47
 
 . Block: SUB_S32: Underflow
 PUSH_S32 42
 SUB_S32
-RET
+RET_S32
 > Stack underflow at 6
 
 . Block: SUB_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 SUB_S32
-RET
-> Invalid argument types for instruction 3 at 7
+RET_S32
+> Invalid argument types for instruction 5 at 7
 
+
+
+### MUL_S32
 . Block: MUL_S32
 PUSH_S32 42
 PUSH_S32 -5
 MUL_S32
-RET
+RET_S32
 > OK, result: -210
 
 . Block: MUL_S32: Underflow
 PUSH_S32 42
 MUL_S32
-RET
+RET_S32
 > Stack underflow at 6
 
 . Block: MUL_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 MUL_S32
-RET
-> Invalid argument types for instruction 2 at 7
+RET_S32
+> Invalid argument types for instruction 4 at 7
 
+
+
+### DIV_S32
 . Block: DIV_S32
 PUSH_S32 42
 PUSH_S32 -5
 DIV_S32
-RET
+RET_S32
 > OK, result: -8
 
 . Block: DIV_S32: Underflow
 PUSH_S32 42
 DIV_S32
-RET
+RET_S32
 > Stack underflow at 6
 
 . Block: DIV_S32: Invalid Argument
 PUSH_S32 42
 PUSH_TRUE
 DIV_S32
-RET
-> Invalid argument types for instruction 1 at 7
+RET_S32
+> Invalid argument types for instruction 3 at 7
 
 . Block: DIV_S32: Division by zero
 PUSH_S32 42
 PUSH_S32 0
 DIV_S32
-RET
+RET_S32
 > Division by zero at 11
-

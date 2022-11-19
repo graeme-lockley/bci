@@ -143,7 +143,7 @@ static InterpretResult verifyBlock(VM *vm)
 
                 return result;
             }
-            else if (sp > 1)
+            else if (sp != 0)
             {
                 InterpretResult result;
 
@@ -152,7 +152,34 @@ static InterpretResult verifyBlock(VM *vm)
 
                 return result;
             }
-            else if (sp == 1 && stack[0] != VT_S32)
+            else
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_OK;
+
+                return result;
+            }
+        case OP_RET_S32:
+            if (ip != vm->chunk->size)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_RET_MUST_TERMINATE_BLOCK;
+                result.detail.ret_must_terminate_block.ip = ip;
+
+                return result;
+            }
+            else if (sp != 1)
+            {
+                InterpretResult result;
+
+                result.code = INTERPRET_RET_INVALID_STACK;
+                result.detail.ret_must_terminate_block.ip = ip;
+
+                return result;
+            }
+            else if (stack[0] != VT_S32)
             {
                 InterpretResult result;
 
@@ -273,7 +300,16 @@ InterpretResult bci_run(VM *vm)
             InterpretResult result;
 
             result.code = INTERPRET_OK;
-            result.detail.ok.result = vm->sp == 0 ? 0 : vm->stack[vm->sp - 1].detail.s32;
+            result.detail.ok.result = 0;
+
+            return result;
+        }
+        case OP_RET_S32:
+        {
+            InterpretResult result;
+
+            result.code = INTERPRET_OK;
+            result.detail.ok.result = vm->stack[vm->sp - 1].detail.s32;
 
             return result;
         }

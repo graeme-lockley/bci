@@ -36,7 +36,7 @@ int main(void)
     printf(". Memory allocated delta: %d\n", start_memory_allocated);
 #endif
 
-    // TEST_SUITE(suite_chunk);
+    TEST_SUITE(suite_chunk);
     TEST_FILE_RUNNER("./test/block-scenarios.txt");
 
     if (result == NULL)

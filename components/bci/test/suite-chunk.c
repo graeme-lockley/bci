@@ -33,12 +33,12 @@ static char *op_ret_with_empty_stack(void)
     return NULL;
 }
 
-static char *op_ret_with_value(void)
+static char *op_ret_s32_with_value(void)
 {
     ChunkBuilder *builder = chunk_builder_new();
 
     chunk_builder_append_s32(builder, OP_PUSH_S32, 42);
-    chunk_builder_append(builder, OP_RET);
+    chunk_builder_append(builder, OP_RET_S32);
 
     InterpretResult result = run_chunk(builder);
 
@@ -51,7 +51,7 @@ static char *op_ret_with_value(void)
 char *suite_chunk(void)
 {
     mu_run_test(op_ret_with_empty_stack);
-    mu_run_test(op_ret_with_value);
+    mu_run_test(op_ret_s32_with_value);
 
     return NULL;
 }

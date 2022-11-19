@@ -3,6 +3,9 @@
 
 typedef enum
 {
+    OP_RET,
+    OP_RET_S32,
+
     OP_ADD_S32,
     OP_DIV_S32,
     OP_MUL_S32,
@@ -10,9 +13,7 @@ typedef enum
 
     OP_PUSH_FALSE,
     OP_PUSH_TRUE,
-    OP_PUSH_S32,
-
-    OP_RET
+    OP_PUSH_S32
 } Op;
 
 extern char *Op_Names[];
