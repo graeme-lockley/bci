@@ -70,43 +70,43 @@ void append(BlockBuilder *cb, char *trimmed)
 {
     if (strcmp(trimmed, "ADD_S32") == 0)
     {
-        block_builder_append(cb, OP_ADD_S32);
+        block_builder_append(cb, EOP_ADD_S32);
     }
     else if (strcmp(trimmed, "DIV_S32") == 0)
     {
-        block_builder_append(cb, OP_DIV_S32);
+        block_builder_append(cb, EOP_DIV_S32);
     }
     else if (strcmp(trimmed, "MUL_S32") == 0)
     {
-        block_builder_append(cb, OP_MUL_S32);
+        block_builder_append(cb, EOP_MUL_S32);
     }
     else if (strcmp(trimmed, "SUB_S32") == 0)
     {
-        block_builder_append(cb, OP_SUB_S32);
+        block_builder_append(cb, EOP_SUB_S32);
     }
     else if (strcmp(trimmed, "PUSH_FALSE") == 0)
     {
-        block_builder_append(cb, OP_PUSH_FALSE);
+        block_builder_append(cb, EOP_PUSH_FALSE);
     }
     else if (strcmp(trimmed, "PUSH_TRUE") == 0)
     {
-        block_builder_append(cb, OP_PUSH_TRUE);
+        block_builder_append(cb, EOP_PUSH_TRUE);
     }
     else if (strcmp(trimmed, "RET") == 0)
     {
-        block_builder_append(cb, OP_RET);
+        block_builder_append(cb, EOP_RET);
     }
     else if (strcmp(trimmed, "RET_BOOL") == 0)
     {
-        block_builder_append(cb, OP_RET_BOOL);
+        block_builder_append(cb, EOP_RET_BOOL);
     }
     else if (strcmp(trimmed, "RET_S32") == 0)
     {
-        block_builder_append(cb, OP_RET_S32);
+        block_builder_append(cb, EOP_RET_S32);
     }
     else if (strncmp(trimmed, "PUSH_S32 ", 8) == 0)
     {
-        block_builder_append_s32(cb, OP_PUSH_S32, atoi(trimmed + 9));
+        block_builder_append_s32(cb, EOP_PUSH_S32, atoi(trimmed + 9));
     }
     else
     {

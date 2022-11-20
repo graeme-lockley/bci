@@ -23,7 +23,7 @@ static char *op_ret_with_empty_stack(void)
 {
     BlockBuilder *builder = block_builder_new();
 
-    block_builder_append(builder, OP_RET);
+    block_builder_append(builder, EOP_RET);
 
     InterpretResult result = run_block(builder);
 
@@ -37,8 +37,8 @@ static char *op_ret_s32_with_value(void)
 {
     BlockBuilder *builder = block_builder_new();
 
-    block_builder_append_s32(builder, OP_PUSH_S32, 42);
-    block_builder_append(builder, OP_RET_S32);
+    block_builder_append_s32(builder, EOP_PUSH_S32, 42);
+    block_builder_append(builder, EOP_RET_S32);
 
     InterpretResult result = run_block(builder);
 

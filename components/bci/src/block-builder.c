@@ -13,12 +13,12 @@ BlockBuilder *block_builder_new(void)
     return buffer_new(sizeof(char));
 }
 
-void block_builder_append(BlockBuilder *builder, Op op)
+void block_builder_append(BlockBuilder *builder, EOp op)
 {
     buffer_append(builder, &op, 1);
 }
 
-void block_builder_append_s32(BlockBuilder *builder, Op op, int32_t v) {
+void block_builder_append_s32(BlockBuilder *builder, EOp op, int32_t v) {
     buffer_append(builder, &op, 1);
     buffer_append(builder, &v, sizeof(int32_t));
 }

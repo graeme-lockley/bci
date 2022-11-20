@@ -1,6 +1,6 @@
 #include "op.h"
 
-char *Op_Names[] = {
+char *EOp_Names[] = {
     "RET",
     "RET_BOOL",
     "RET_S32",
@@ -10,14 +10,16 @@ char *Op_Names[] = {
     "SUB_S32",
     "PUSH_FALSE",
     "PUSH_TRUE",
-    "PUSH_S32"};
+    "PUSH_S32",
+    "BLOCK",
+    "JMP"};
 
-char *Op_name(Op op)
+char *EOp_name(EOp eop)
 {
-    if (op < 0 || op > 9)
+    if (eop < 0 || eop > 11)
     {
         return "UNKNOWN";
     }
 
-    return Op_Names[op];
+    return EOp_Names[eop];
 }

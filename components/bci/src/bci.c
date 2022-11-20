@@ -67,12 +67,12 @@ static InterpretResult verifyBlock(VM *vm)
 
             return result;
         }
-        Op op = vm->block->code[ip];
+        EOp op = vm->block->code[ip];
         ip += 1;
         switch (op)
         {
-        case OP_PUSH_TRUE:
-        case OP_PUSH_FALSE:
+        case EOP_PUSH_TRUE:
+        case EOP_PUSH_FALSE:
             if (sp == STACK_SIZE)
             {
                 InterpretResult result;
@@ -85,7 +85,7 @@ static InterpretResult verifyBlock(VM *vm)
             stack[sp] = VT_BOOL;
             sp += 1;
             break;
-        case OP_PUSH_S32:
+        case EOP_PUSH_S32:
             if (sp == STACK_SIZE)
             {
                 InterpretResult result;
@@ -108,10 +108,10 @@ static InterpretResult verifyBlock(VM *vm)
             sp += 1;
             ip += sizeof(int32_t);
             break;
-        case OP_ADD_S32:
-        case OP_SUB_S32:
-        case OP_MUL_S32:
-        case OP_DIV_S32:
+        case EOP_ADD_S32:
+        case EOP_SUB_S32:
+        case EOP_MUL_S32:
+        case EOP_DIV_S32:
             if (sp < 2)
             {
                 InterpretResult result;
@@ -133,7 +133,7 @@ static InterpretResult verifyBlock(VM *vm)
             }
             sp -= 1;
             break;
-        case OP_RET:
+        case EOP_RET:
             if (ip != vm->block->size)
             {
                 InterpretResult result;
@@ -160,7 +160,7 @@ static InterpretResult verifyBlock(VM *vm)
 
                 return result;
             }
-        case OP_RET_BOOL:
+        case EOP_RET_BOOL:
             if (ip != vm->block->size)
             {
                 InterpretResult result;
@@ -197,7 +197,7 @@ static InterpretResult verifyBlock(VM *vm)
 
                 return result;
             }
-        case OP_RET_S32:
+        case EOP_RET_S32:
             if (ip != vm->block->size)
             {
                 InterpretResult result;
@@ -272,27 +272,27 @@ InterpretResult bci_run(VM *vm)
         READ_BYTE_INTO(instruction);
 
 #ifdef BCI_VERBOSE
-        printf(", sp=%04x: %s (%d)\n", vm->sp, Op_name(instruction), instruction);
+        printf(", sp=%04x: %s (%d)\n", vm->sp, EOp_name(instruction), instruction);
 #endif
 
         switch (instruction)
         {
-        case OP_ADD_S32:
+        case EOP_ADD_S32:
         {
             S32_OPERATOR(+);
             break;
         }
-        case OP_SUB_S32:
+        case EOP_SUB_S32:
         {
             S32_OPERATOR(-);
             break;
         }
-        case OP_MUL_S32:
+        case EOP_MUL_S32:
         {
             S32_OPERATOR(*);
             break;
         }
-        case OP_DIV_S32:
+        case EOP_DIV_S32:
         {
             if (vm->stack[vm->sp - 1].detail.s32 == 0)
             {
@@ -306,7 +306,7 @@ InterpretResult bci_run(VM *vm)
             vm->sp--;
             break;
         }
-        case OP_PUSH_TRUE:
+        case EOP_PUSH_TRUE:
         {
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 1;
@@ -314,7 +314,7 @@ InterpretResult bci_run(VM *vm)
 
             break;
         }
-        case OP_PUSH_FALSE:
+        case EOP_PUSH_FALSE:
         {
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 0;
@@ -322,7 +322,7 @@ InterpretResult bci_run(VM *vm)
 
             break;
         }
-        case OP_PUSH_S32:
+        case EOP_PUSH_S32:
         {
             READ_S32_INTO(value);
 
@@ -332,7 +332,7 @@ InterpretResult bci_run(VM *vm)
 
             break;
         }
-        case OP_RET:
+        case EOP_RET:
         {
             InterpretResult result;
 
@@ -341,7 +341,7 @@ InterpretResult bci_run(VM *vm)
 
             return result;
         }
-        case OP_RET_BOOL:
+        case EOP_RET_BOOL:
         {
             InterpretResult result;
 
@@ -350,7 +350,7 @@ InterpretResult bci_run(VM *vm)
 
             return result;
         }
-        case OP_RET_S32:
+        case EOP_RET_S32:
         {
             InterpretResult result;
 
@@ -383,10 +383,10 @@ char *bci_interpretResult_toString(InterpretResult result)
         sprintf(line, "OK, result: %d", result.detail.ok.result);
         break;
     case INTERPRET_INVALID_INSTRUCTION:
-        sprintf(line, "Invalid instruction %s at %04x", Op_name(result.detail.invalid_instruction.instruction), result.detail.invalid_instruction.ip);
+        sprintf(line, "Invalid instruction %s at %04x", EOp_name(result.detail.invalid_instruction.instruction), result.detail.invalid_instruction.ip);
         break;
     case INTERPRET_INVALID_ARGUMENT_TYPES:
-        sprintf(line, "Invalid argument types for %s at %04x", Op_name(result.detail.invalid_argument_types.instruction), result.detail.invalid_argument_types.ip);
+        sprintf(line, "Invalid argument types for %s at %04x", EOp_name(result.detail.invalid_argument_types.instruction), result.detail.invalid_argument_types.ip);
         break;
     case INTERPRET_STACK_OVERFLOW:
         sprintf(line, "Stack overflow at %04x", result.detail.stack_overflow.ip);
