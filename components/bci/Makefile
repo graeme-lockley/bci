@@ -6,7 +6,7 @@ SRC_OBJECTS=src/bci.o src/block.o src/block-builder.o src/buffer.o src/map.o src
 SRC_MAIN_OBJECTS=src/main.o
 SRC_TARGETS=src/main
 
-TEST_OBJECTS=test/minunit.o test/scenario-runner.o test/suite-block.o
+TEST_OBJECTS=test/minunit.o test/scenario-runner.o
 TEST_MAIN_OBJECTS=test/test-main.o
 TEST_TARGETS=test/test-runner
 

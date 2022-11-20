@@ -53,11 +53,21 @@ static char *run_test(char *scenario, Block *block, char *expected_result)
 {
     mu_run_test_label_start(scenario);
 
-    VM *vm = bci_initVM_populate(block);
-    InterpretResult result = bci_run(vm);
-    bci_freeVM(vm);
+    InitResult initResult = bci_initVM_populate(block);
 
-    char *r = bci_interpretResult_toString(result);
+    char *r;
+
+    if (initResult.code == INIT_OK)
+    {
+        InterpretResult result = bci_run(initResult.detail.ok.vm);
+        bci_freeVM(initResult.detail.ok.vm);
+        r = bci_interpretResult_toString(result);
+    }
+    else
+    {
+        r = bci_initResult_toString(initResult);
+    }
+
     mu_assert(strcmp(r, expected_result) == 0, r);
     free(r);
 
