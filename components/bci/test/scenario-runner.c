@@ -110,7 +110,7 @@ void append(BlockBuilder *cb, char *trimmed)
     }
     else
     {
-        printf("Unknown instruction: %s\n", trimmed);
+        printf("Unknown instruction: [%s]\n", trimmed);
     }
 }
 
@@ -137,17 +137,21 @@ char *test_file(char *filename)
 
         if (read == -1)
         {
+            if (cb != NULL)
+            {
+                block_builder_free(cb);
+            }
             fclose(fp);
             return NULL;
         }
 
         line = trim(line);
 
-        if (line[0] == '\n' || line[0] == '#')
+        if (line[0] == '\0' || line[0] == '#')
         {
-            continue;
+            // Do nothing
         }
-        if (line[0] == '.' && test_state == 0)
+        else if (line[0] == '.' && test_state == 0)
         {
             test_scenario = trim_preserve(line + 1);
             cb = block_builder_new();
