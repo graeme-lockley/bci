@@ -222,7 +222,9 @@ InitResult bci_initVM_populate(Block *block)
         vm->sp = 0;
 
         result.detail.ok.vm = vm;
-    } else {
+    }
+    else
+    {
         block_free(block);
     }
 
@@ -238,7 +240,7 @@ void bci_freeVM(VM *vm)
 #define READ_BYTE_INTO(v) \
     unsigned char v = code[vm->ip++];
 
-#define READ_S32_INTO(v)                            \
+#define READ_S32_INTO(v)                        \
     int32_t v;                                  \
     memcpy(&v, code + vm->ip, sizeof(int32_t)); \
     vm->ip += sizeof(int32_t);
