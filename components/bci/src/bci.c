@@ -54,12 +54,9 @@ static InitResult verifyBlock(Block *block)
     {
         if (ip >= size)
         {
-            InitResult result;
-
-            result.code = INIT_BLOCK_INCORRECTLY_TERMINATED;
-            result.detail.block_incorrectly_terminated.ip = ip;
-
-            return result;
+            return (InitResult){
+                .code = INIT_BLOCK_INCORRECTLY_TERMINATED,
+                .detail.block_incorrectly_terminated.ip = ip};
         }
         EOp op = code[ip];
         ip += 1;
@@ -69,12 +66,9 @@ static InitResult verifyBlock(Block *block)
         case EOP_PUSH_FALSE:
             if (sp == STACK_SIZE)
             {
-                InitResult result;
-
-                result.code = INIT_STACK_OVERFLOW;
-                result.detail.stack_overflow.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_STACK_OVERFLOW,
+                    .detail.stack_overflow.ip = ip};
             }
             stack[sp] = VT_BOOL;
             sp += 1;
@@ -82,21 +76,15 @@ static InitResult verifyBlock(Block *block)
         case EOP_PUSH_S32:
             if (sp == STACK_SIZE)
             {
-                InitResult result;
-
-                result.code = INIT_STACK_OVERFLOW;
-                result.detail.stack_overflow.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_STACK_OVERFLOW,
+                    .detail.stack_overflow.ip = ip};
             }
             if (ip + sizeof(int32_t) >= size)
             {
-                InitResult result;
-
-                result.code = INIT_BLOCK_INCORRECTLY_TERMINATED;
-                result.detail.block_incorrectly_terminated.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_BLOCK_INCORRECTLY_TERMINATED,
+                    .detail.block_incorrectly_terminated.ip = ip};
             }
             stack[sp] = VT_S32;
             sp += 1;
@@ -108,137 +96,95 @@ static InitResult verifyBlock(Block *block)
         case EOP_DIV_S32:
             if (sp < 2)
             {
-                InitResult result;
-
-                result.code = INIT_STACK_UNDERFLOW;
-                result.detail.stack_underflow.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_STACK_UNDERFLOW,
+                    .detail.stack_underflow.ip = ip};
             }
             else if (stack[sp - 1] != VT_S32 || stack[sp - 2] != VT_S32)
             {
-                InitResult result;
-
-                result.code = INIT_INVALID_ARGUMENT_TYPES;
-                result.detail.invalid_argument_types.ip = ip;
-                result.detail.invalid_argument_types.instruction = op;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_INVALID_ARGUMENT_TYPES,
+                    .detail.invalid_argument_types.ip = ip,
+                    .detail.invalid_argument_types.instruction = op};
             }
             sp -= 1;
             break;
         case EOP_RET:
             if (ip != size)
             {
-                InitResult result;
-
-                result.code = INIT_RET_MUST_TERMINATE_BLOCK;
-                result.detail.ret_must_terminate_block.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_RET_MUST_TERMINATE_BLOCK,
+                    .detail.ret_must_terminate_block.ip = ip};
             }
             else if (sp != 0)
             {
-                InitResult result;
-
-                result.code = INIT_RET_INVALID_STACK;
-                result.detail.ret_must_terminate_block.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_RET_INVALID_STACK,
+                    .detail.ret_must_terminate_block.ip = ip};
             }
             else
             {
-                InitResult result;
-
-                result.code = INIT_OK;
-                result.detail.ok.vm = NULL;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_OK,
+                    .detail.ok.vm = NULL};
             }
         case EOP_RET_BOOL:
             if (ip != size)
             {
-                InitResult result;
-
-                result.code = INIT_RET_MUST_TERMINATE_BLOCK;
-                result.detail.ret_must_terminate_block.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_RET_MUST_TERMINATE_BLOCK,
+                    .detail.ret_must_terminate_block.ip = ip};
             }
             else if (sp != 1)
             {
-                InitResult result;
-
-                result.code = INIT_RET_INVALID_STACK;
-                result.detail.ret_must_terminate_block.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_RET_INVALID_STACK,
+                    .detail.ret_must_terminate_block.ip = ip};
             }
             else if (stack[0] != VT_BOOL)
             {
-                InitResult result;
-
-                result.code = INIT_INVALID_ARGUMENT_TYPES;
-                result.detail.invalid_argument_types.ip = ip;
-                result.detail.invalid_argument_types.instruction = op;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_INVALID_ARGUMENT_TYPES,
+                    .detail.invalid_argument_types.ip = ip,
+                    .detail.invalid_argument_types.instruction = op};
             }
             else
             {
-                InitResult result;
-
-                result.code = INIT_OK;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_OK,
+                    .detail.ok.vm = NULL};
             }
         case EOP_RET_S32:
             if (ip != size)
             {
-                InitResult result;
-
-                result.code = INIT_RET_MUST_TERMINATE_BLOCK;
-                result.detail.ret_must_terminate_block.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_RET_MUST_TERMINATE_BLOCK,
+                    .detail.ret_must_terminate_block.ip = ip};
             }
             else if (sp != 1)
             {
-                InitResult result;
-
-                result.code = INIT_RET_INVALID_STACK;
-                result.detail.ret_must_terminate_block.ip = ip;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_RET_INVALID_STACK,
+                    .detail.ret_must_terminate_block.ip = ip};
             }
             else if (stack[0] != VT_S32)
             {
-                InitResult result;
-
-                result.code = INIT_INVALID_ARGUMENT_TYPES;
-                result.detail.invalid_argument_types.ip = ip;
-                result.detail.invalid_argument_types.instruction = op;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_INVALID_ARGUMENT_TYPES,
+                    .detail.invalid_argument_types.ip = ip,
+                    .detail.invalid_argument_types.instruction = op};
             }
             else
             {
-                InitResult result;
-
-                result.code = INIT_OK;
-
-                return result;
+                return (InitResult){
+                    .code = INIT_OK,
+                    .detail.ok.vm = NULL};
             }
         default:
-        {
-            InitResult result;
-
-            result.code = INIT_INVALID_INSTRUCTION;
-            result.detail.invalid_instruction.ip = ip;
-            result.detail.invalid_instruction.instruction = op;
-
-            return result;
-        }
+            return (InitResult){
+                .code = INIT_INVALID_INSTRUCTION,
+                .detail.invalid_instruction.ip = ip,
+                .detail.invalid_instruction.instruction = op};
         }
     }
 }
@@ -333,10 +279,6 @@ void bci_freeVM(VM *vm)
     memcpy(&v, code + vm->ip, sizeof(int32_t)); \
     vm->ip += sizeof(int32_t);
 
-#define S32_OPERATOR(op)                                                                                     \
-    vm->stack[vm->sp - 2].detail.s32 = vm->stack[vm->sp - 2].detail.s32 op vm->stack[vm->sp - 1].detail.s32; \
-    vm->sp--;
-
 InterpretResult bci_run(VM *vm)
 {
     vm->ip = 0;
@@ -358,50 +300,44 @@ InterpretResult bci_run(VM *vm)
         switch (instruction)
         {
         case IOP_ADD_S32:
-        {
-            S32_OPERATOR(+);
+            vm->stack[vm->sp - 2].detail.s32 = vm->stack[vm->sp - 2].detail.s32 + vm->stack[vm->sp - 1].detail.s32;
+            vm->sp--;
             break;
-        }
+
         case IOP_SUB_S32:
-        {
-            S32_OPERATOR(-);
+            vm->stack[vm->sp - 2].detail.s32 = vm->stack[vm->sp - 2].detail.s32 - vm->stack[vm->sp - 1].detail.s32;
+            vm->sp--;
             break;
-        }
+
         case IOP_MUL_S32:
-        {
-            S32_OPERATOR(*);
+            vm->stack[vm->sp - 2].detail.s32 = vm->stack[vm->sp - 2].detail.s32 * vm->stack[vm->sp - 1].detail.s32;
+            vm->sp--;
             break;
-        }
+
         case IOP_DIV_S32:
-        {
             if (vm->stack[vm->sp - 1].detail.s32 == 0)
             {
-                InterpretResult result;
-                result.code = INTERPRET_DIVISION_BY_ZERO;
-                result.detail.division_by_zero.ip = vm->ip;
-                return result;
+                return (InterpretResult){
+                    .code = INTERPRET_DIVISION_BY_ZERO,
+                    .detail.division_by_zero.ip = vm->ip};
             }
 
             vm->stack[vm->sp - 2].detail.s32 = vm->stack[vm->sp - 2].detail.s32 / vm->stack[vm->sp - 1].detail.s32;
             vm->sp--;
             break;
-        }
+
         case IOP_PUSH_TRUE:
-        {
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 1;
             vm->sp++;
-
             break;
-        }
+
         case IOP_PUSH_FALSE:
-        {
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 0;
             vm->sp++;
-
             break;
-        }
+
         case IOP_PUSH_S32:
         {
             READ_S32_INTO(value);
@@ -413,42 +349,25 @@ InterpretResult bci_run(VM *vm)
             break;
         }
         case IOP_RET:
-        {
-            InterpretResult result;
+            return (InterpretResult){
+                .code = INTERPRET_OK,
+                .detail.ok.result = 0};
 
-            result.code = INTERPRET_OK;
-            result.detail.ok.result = 0;
-
-            return result;
-        }
         case IOP_RET_BOOL:
-        {
-            InterpretResult result;
+            return (InterpretResult){
+                .code = INTERPRET_OK,
+                .detail.ok.result = vm->stack[vm->sp - 1].detail.s32};
 
-            result.code = INTERPRET_OK;
-            result.detail.ok.result = vm->stack[vm->sp - 1].detail.s32;
-
-            return result;
-        }
         case IOP_RET_S32:
-        {
-            InterpretResult result;
+            return (InterpretResult){
+                .code = INTERPRET_OK,
+                .detail.ok.result = vm->stack[vm->sp - 1].detail.s32};
 
-            result.code = INTERPRET_OK;
-            result.detail.ok.result = vm->stack[vm->sp - 1].detail.s32;
-
-            return result;
-        }
         default:
-        {
-            InterpretResult result;
-
-            result.code = INTERPRET_INVALID_INSTRUCTION;
-            result.detail.invalid_instruction.ip = vm->ip;
-            result.detail.invalid_instruction.instruction = instruction;
-
-            return result;
-        }
+            return (InterpretResult){
+                .code = INTERPRET_INVALID_INSTRUCTION,
+                .detail.invalid_instruction.ip = vm->ip,
+                .detail.invalid_instruction.instruction = instruction};
         }
     }
 }
