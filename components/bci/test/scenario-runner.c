@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "../src/block.h"
-#include "../src/block-builder.h"
+#include "../src/ebuilder.h"
 #include "../src/bci.h"
 
 #include "minunit.h"

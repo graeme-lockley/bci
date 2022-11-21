@@ -1,5 +1,5 @@
-#ifndef BLOCK_BUILDER_H
-#define BLOCK_BUILDER_H
+#ifndef EBUILDER_H
+#define EBUILDER_H
 
 #include "block.h"
 #include "buffer.h"

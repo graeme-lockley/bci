@@ -3,7 +3,7 @@
 
 #include "block.h"
 #include "buffer.h"
-#include "block-builder.h"
+#include "ebuilder.h"
 
 #include "memory.h"
 

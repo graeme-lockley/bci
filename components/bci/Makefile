@@ -2,7 +2,7 @@ CC=clang -Ofast
 CFLAGS=-pedantic 
 LDFLAGS=
 
-SRC_OBJECTS=src/bci.o src/block.o src/block-builder.o src/buffer.o src/map.o src/memory.o src/op.o
+SRC_OBJECTS=src/bci.o src/block.o src/buffer.o src/ebuilder.o src/map.o src/memory.o src/op.o
 SRC_MAIN_OBJECTS=src/main.o
 SRC_TARGETS=src/main
 
