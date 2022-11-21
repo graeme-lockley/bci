@@ -2,10 +2,44 @@
 #include <string.h>
 
 #include "block.h"
+#include "buffer.h"
 #include "memory.h"
 #include "op.h"
 
 #include "bci.h"
+
+typedef struct
+{
+    Buffer *buffer;
+} IBlockBuilder;
+
+IBlockBuilder *iblock_builder_new(void)
+{
+    IBlockBuilder *builder = ALLOCATE(IBlockBuilder, 1);
+    builder->buffer = buffer_new(sizeof(char));
+
+    return builder;
+}
+
+static void iblock_builder_appendIOP(IBlockBuilder *ibb, IOp iop)
+{
+    // buffer_append(buffer, &iop, sizeof(IOp));
+    char c = (char)iop;
+    buffer_append(ibb->buffer, &c, sizeof(char));
+}
+
+static void iblock_builder_appendIOPS32(IBlockBuilder *ibb, IOp iop, int32_t u32)
+{
+    iblock_builder_appendIOP(ibb, iop);
+    buffer_append(ibb->buffer, &u32, sizeof(int32_t));
+}
+
+static char *iblock_builder_free_use(IBlockBuilder *ibb)
+{
+    char *result = buffer_free_use(ibb->buffer);
+    FREE(ibb);
+    return result;
+}
 
 static InitResult verifyBlock(Block *block)
 {
@@ -209,31 +243,85 @@ static InitResult verifyBlock(Block *block)
     }
 }
 
+static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
+{
+    int32_t ip = 0;
+
+    while (ip < block->size)
+    {
+        EOp op = block->code[ip];
+        ip += 1;
+        switch (op)
+        {
+        case EOP_PUSH_TRUE:
+            iblock_builder_appendIOP(ibb, IOP_PUSH_TRUE);
+            break;
+        case EOP_PUSH_FALSE:
+            iblock_builder_appendIOP(ibb, IOP_PUSH_FALSE);
+            break;
+        case EOP_PUSH_S32:
+            iblock_builder_appendIOPS32(ibb, IOP_PUSH_S32, *(int32_t *)(block->code + ip));
+            ip += sizeof(int32_t);
+            break;
+        case EOP_ADD_S32:
+            iblock_builder_appendIOP(ibb, IOP_ADD_S32);
+            break;
+        case EOP_SUB_S32:
+            iblock_builder_appendIOP(ibb, IOP_SUB_S32);
+            break;
+        case EOP_MUL_S32:
+            iblock_builder_appendIOP(ibb, IOP_MUL_S32);
+            break;
+        case EOP_DIV_S32:
+            iblock_builder_appendIOP(ibb, IOP_DIV_S32);
+            break;
+        case EOP_RET:
+            iblock_builder_appendIOP(ibb, IOP_RET);
+            break;
+        case EOP_RET_BOOL:
+            iblock_builder_appendIOP(ibb, IOP_RET_BOOL);
+            break;
+        case EOP_RET_S32:
+            iblock_builder_appendIOP(ibb, IOP_RET_S32);
+            break;
+        default:
+            return (InitResult){
+                .code = INIT_INVALID_INSTRUCTION,
+                .detail.invalid_instruction.ip = ip,
+                .detail.invalid_instruction.instruction = op};
+        }
+    }
+
+    return (InitResult){
+        .code = INIT_OK,
+        .detail.ok.vm = NULL};
+}
+
 InitResult bci_initVM_populate(Block *block)
 {
     InitResult result = verifyBlock(block);
 
     if (result.code == INIT_OK)
     {
+        IBlockBuilder *ibb = iblock_builder_new();
+        result = bci_compileBlock(block, ibb);
         VM *vm = ALLOCATE(VM, 1);
 
-        vm->block = block;
+        vm->code = iblock_builder_free_use(ibb);
         vm->ip = 0;
         vm->sp = 0;
 
         result.detail.ok.vm = vm;
     }
-    else
-    {
-        block_free(block);
-    }
+
+    block_free(block);
 
     return result;
 }
 
 void bci_freeVM(VM *vm)
 {
-    block_free(vm->block);
+    FREE(vm->code);
     FREE(vm);
 }
 
@@ -254,8 +342,7 @@ InterpretResult bci_run(VM *vm)
     vm->ip = 0;
     vm->sp = 0;
 
-    char *code = vm->block->code;
-    const int32_t size = vm->block->size;
+    char *code = vm->code;
 
     for (;;)
     {
@@ -270,22 +357,22 @@ InterpretResult bci_run(VM *vm)
 
         switch (instruction)
         {
-        case EOP_ADD_S32:
+        case IOP_ADD_S32:
         {
             S32_OPERATOR(+);
             break;
         }
-        case EOP_SUB_S32:
+        case IOP_SUB_S32:
         {
             S32_OPERATOR(-);
             break;
         }
-        case EOP_MUL_S32:
+        case IOP_MUL_S32:
         {
             S32_OPERATOR(*);
             break;
         }
-        case EOP_DIV_S32:
+        case IOP_DIV_S32:
         {
             if (vm->stack[vm->sp - 1].detail.s32 == 0)
             {
@@ -299,7 +386,7 @@ InterpretResult bci_run(VM *vm)
             vm->sp--;
             break;
         }
-        case EOP_PUSH_TRUE:
+        case IOP_PUSH_TRUE:
         {
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 1;
@@ -307,7 +394,7 @@ InterpretResult bci_run(VM *vm)
 
             break;
         }
-        case EOP_PUSH_FALSE:
+        case IOP_PUSH_FALSE:
         {
             vm->stack[vm->sp].type = VT_BOOL;
             vm->stack[vm->sp].detail.s32 = 0;
@@ -315,7 +402,7 @@ InterpretResult bci_run(VM *vm)
 
             break;
         }
-        case EOP_PUSH_S32:
+        case IOP_PUSH_S32:
         {
             READ_S32_INTO(value);
 
@@ -325,7 +412,7 @@ InterpretResult bci_run(VM *vm)
 
             break;
         }
-        case EOP_RET:
+        case IOP_RET:
         {
             InterpretResult result;
 
@@ -334,7 +421,7 @@ InterpretResult bci_run(VM *vm)
 
             return result;
         }
-        case EOP_RET_BOOL:
+        case IOP_RET_BOOL:
         {
             InterpretResult result;
 
@@ -343,7 +430,7 @@ InterpretResult bci_run(VM *vm)
 
             return result;
         }
-        case EOP_RET_S32:
+        case IOP_RET_S32:
         {
             InterpretResult result;
 

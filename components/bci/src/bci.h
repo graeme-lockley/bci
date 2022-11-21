@@ -136,7 +136,7 @@ typedef struct
 
 typedef struct VM
 {
-    Block *block;
+    char *code;
     int32_t ip;
     Value stack[STACK_SIZE];
     int32_t sp;
