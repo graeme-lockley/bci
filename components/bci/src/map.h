@@ -1,7 +1,8 @@
 #ifndef MAP_H
 #define MAP_H
 
-typedef struct Map_Node {
+typedef struct Map_Node
+{
     void *key;
     void *value;
 
@@ -9,18 +10,23 @@ typedef struct Map_Node {
     struct Map_Node *right;
 } Map_Node;
 
-typedef struct {
+typedef struct
+{
     Map_Node *root;
     int (*compare)(void *a, void *b);
+    void (*free_key)(void *key);
+    void (*free_value)(void *value);
 } Map;
 
-Map *map_new(int (*compare)(void *a, void *b));
-Map *map_string_new(void);
+extern Map *map_new(int (*compare)(void *a, void *b), void (*free_key)(void *key), void (*free_value)(void *value));
+extern Map *map_string_new(void (*free_value)(void *value));
 
-void map_free(Map *map);
+extern void map_free(Map *map);
 
-void *map_get(Map *map, void *key);
-int map_add(Map *map, void *key, void *value);
-int map_set(Map *map, void *key, void *value);
+extern void *map_get(Map *map, void *key);
+extern int map_add(Map *map, void *key, void *value);
+extern int map_set(Map *map, void *key, void *value);
+
+extern void free_void(void *key);
 
 #endif

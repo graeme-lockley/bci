@@ -41,6 +41,12 @@ static char *iblock_builder_free_use(IBlockBuilder *ibb)
     return result;
 }
 
+static void iblock_builder_free(IBlockBuilder *ibb)
+{
+    buffer_free(ibb->buffer);
+    FREE(ibb);
+}
+
 static InitResult verifyBlock(Block *block)
 {
     char *code = block->code;
@@ -243,14 +249,44 @@ static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
         .detail.ok.vm = NULL};
 }
 
-InitResult bci_initVM_populate(Block *block)
+static InitResult populateBlock(IBlockBuilder *ibb, Map_Node *node)
 {
-    InitResult result = verifyBlock(block);
+    if (node)
+    {
+        Block *block = (Block *)node->value;
+        InitResult result = verifyBlock(block);
+
+        if (result.code == INIT_OK)
+        {
+            result = bci_compileBlock(block, ibb);
+        }
+
+        if (result.code == INIT_OK)
+        {
+            result = populateBlock(ibb, node->left);
+        }
+        if (result.code == INIT_OK)
+        {
+            result = populateBlock(ibb, node->right);
+        }
+        return result;
+    }
+    else
+    {
+        return (InitResult){
+            .code = INIT_OK,
+            .detail.ok.vm = NULL};
+    }
+}
+
+InitResult bci_initVM_populate(Blocks *blocks)
+{
+    IBlockBuilder *ibb = iblock_builder_new();
+
+    InitResult result = populateBlock(ibb, blocks->root);
 
     if (result.code == INIT_OK)
     {
-        IBlockBuilder *ibb = iblock_builder_new();
-        result = bci_compileBlock(block, ibb);
         VM *vm = ALLOCATE(VM, 1);
 
         vm->code = iblock_builder_free_use(ibb);
@@ -258,9 +294,11 @@ InitResult bci_initVM_populate(Block *block)
         vm->sp = 0;
 
         result.detail.ok.vm = vm;
+    } else {
+        iblock_builder_free(ibb);
     }
 
-    block_free(block);
+    blocks_free(blocks);
 
     return result;
 }

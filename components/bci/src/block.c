@@ -22,3 +22,8 @@ void block_free(Block *block)
 
     FREE(block);
 }
+
+void blocks_free(Blocks *blocks)
+{
+    map_free(blocks);
+}

@@ -55,7 +55,7 @@ int main(void)
 
     if (end_memory_allocated > start_memory_allocated)
     {
-        printf(". Memory leak detected: %d bytes\n", end_memory_allocated - start_memory_allocated);
+        printf(". Memory leak detected: %d allocations leaked\n", end_memory_allocated - start_memory_allocated);
         return 1;
     }
 #endif

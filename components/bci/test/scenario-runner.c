@@ -49,11 +49,11 @@ static char *trim_preserve(char *input)
     return trim(strdup(input));
 }
 
-static char *run_test(char *scenario, Block *block, char *expected_result)
+static char *run_test(char *scenario, Blocks *blocks, char *expected_result)
 {
     mu_run_test_label_start(scenario);
 
-    InitResult initResult = bci_initVM_populate(block);
+    InitResult initResult = bci_initVM_populate(blocks);
 
     char *r;
 
@@ -138,6 +138,7 @@ char *test_file(char *filename)
     int test_state = 0;
 
     char *test_scenario = NULL;
+    BlocksBuilder *blocks_builder = NULL;
     BlockBuilder *cb = NULL;
     while (1)
     {
@@ -149,7 +150,7 @@ char *test_file(char *filename)
         {
             if (cb != NULL)
             {
-                block_builder_free(cb);
+                blocks_builder_free(blocks_builder);
             }
             fclose(fp);
             return NULL;
@@ -164,7 +165,8 @@ char *test_file(char *filename)
         else if (line[0] == '.' && test_state == 0)
         {
             test_scenario = trim_preserve(line + 1);
-            cb = block_builder_new();
+            blocks_builder = blocks_builder_new();
+            cb = blocks_builder_new_block(blocks_builder, "main");
             test_state = 1;
         }
         else if (line[0] == '>')
@@ -173,10 +175,11 @@ char *test_file(char *filename)
             {
                 char *expected_result = trim_preserve(line + 1);
                 test_state = 0;
-                Block *block = block_builder_build(cb);
+                Blocks *blocks = blocks_builder_build(blocks_builder);
+                blocks_builder = NULL;
                 cb = NULL;
 
-                char *result = run_test(test_scenario, block, expected_result);
+                char *result = run_test(test_scenario, blocks, expected_result);
 
                 free(test_scenario);
                 test_scenario = NULL;

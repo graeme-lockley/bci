@@ -4,36 +4,46 @@
 
 #include "map.h"
 
-Map *map_new(int (*compare)(void *a, void *b))
+Map *map_new(int (*compare)(void *a, void *b), void (*free_key)(void *key), void (*free_value)(void *value))
 {
     Map *map = ALLOCATE(Map, 1);
 
     map->root = NULL;
     map->compare = compare;
+    map->free_key = free_key;
+    map->free_value = free_value;
 
     return map;
 }
 
-Map *map_string_new(void)
+void free_void(void *key)
 {
-    return map_new((int (*)(void *, void *))strcmp);
+    if (key)
+    {
+        FREE(key);
+    }
 }
 
-static void map_free_node(Map_Node *node)
+Map *map_string_new(void (*free_value)(void *value))
+{
+    return map_new((int (*)(void *, void *))strcmp, free_void, free_value);
+}
+
+static void map_free_node(Map *root, Map_Node *node)
 {
     if (node)
     {
-        map_free_node(node->left);
-        map_free_node(node->right);
-        FREE(node->key);
-        FREE(node->value);
+        map_free_node(root, node->left);
+        map_free_node(root, node->right);
+        root->free_key(node->key);
+        root->free_value(node->value);
         FREE(node);
     }
 }
 
 void map_free(Map *map)
 {
-    map_free_node(map->root);
+    map_free_node(map, map->root);
 
     FREE(map);
 }
@@ -115,7 +125,7 @@ int map_set(Map *map, void *key, void *value)
         int cmp = map->compare(key, current->key);
         if (cmp == 0)
         {
-            FREE(current->value);
+            map->free_value(current->value);
             current->value = value;
             return 1;
         }

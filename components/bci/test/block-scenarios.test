@@ -155,7 +155,6 @@ RET_S32
 
 # ### JMP
 # . Block: JMP
-# BLOCK MAIN
 # JMP BLOCK1
 
 # BLOCK BLOCK1

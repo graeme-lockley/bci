@@ -142,7 +142,7 @@ typedef struct VM
     int32_t sp;
 } VM;
 
-extern InitResult bci_initVM_populate(Block *block);
+extern InitResult bci_initVM_populate(Blocks *blocks);
 extern void bci_freeVM(VM *vm);
 
 extern InterpretResult bci_run(VM *vm);

@@ -14,6 +14,9 @@ extern int32_t memory_allocated(void);
 #define ALLOCATE(type, count) \
     (type *)memory_alloc(sizeof(type) * (count), __FILE__, __LINE__)
 
+#define STRDUP(string) \
+    (char *)memory_alloc(strlen(string) + 1, __FILE__, __LINE__)
+
 #define REALLOCATE(pointer, type, count) \
     (type *)realloc(pointer, sizeof(type) * (count))
 
@@ -24,6 +27,9 @@ extern int32_t memory_allocated(void);
 
 #define ALLOCATE(type, count) \
     (type *)realloc(NULL, sizeof(type) * (count))
+
+#define STRDUP(string) \
+    strdup(string)
 
 #define REALLOCATE(pointer, type, count) \
     (type *)realloc(pointer, sizeof(type) * (count))
