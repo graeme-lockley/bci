@@ -106,7 +106,7 @@ static void iblock_builder_free(IBlockBuilder *ibb)
     char *v = (char *)code + ip; \
     ip += strlen(v) + 1;
 
-static InitResult verify_target_block_stack(Blocks *blocks, ValueType *stack, int32_t sp, char *target_block_name)
+static InitResult verifyTargetBlockStack(Blocks *blocks, ValueType *stack, int32_t sp, char *target_block_name)
 {
     Block *target = map_get(blocks, target_block_name);
 
@@ -292,7 +292,7 @@ static InitResult verifyBlock(Blocks *blocks, Block *block)
                     .detail.ret_must_terminate_block.ip = ip};
             }
 
-            return verify_target_block_stack(blocks, stack, sp, s);
+            return verifyTargetBlockStack(blocks, stack, sp, s);
         }
         case EOP_JMP_TRUE:
         {
@@ -314,7 +314,7 @@ static InitResult verifyBlock(Blocks *blocks, Block *block)
 
             sp -= 1;
 
-            return verify_target_block_stack(blocks, stack, sp, s);
+            return verifyTargetBlockStack(blocks, stack, sp, s);
         }
         case EOP_JMP_FALSE:
         {
@@ -336,7 +336,7 @@ static InitResult verifyBlock(Blocks *blocks, Block *block)
 
             sp -= 1;
 
-            return verify_target_block_stack(blocks, stack, sp, s);
+            return verifyTargetBlockStack(blocks, stack, sp, s);
         }
         default:
             return (InitResult){
@@ -352,7 +352,7 @@ static InitResult verifyBlock(Blocks *blocks, Block *block)
     char *v = (char *)block->code + ip; \
     ip += strlen(v) + 1;
 
-static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
+static InitResult compileBlock(Block *block, IBlockBuilder *ibb)
 {
     int32_t ip = 0;
 
@@ -503,7 +503,7 @@ static InitResult populateBlock(IBlockBuilder *ibb, Map_Node *node)
         Block *block = (Block *)node->value;
         iblock_builder_add_block(ibb, node->key);
 
-        result = bci_compileBlock(block, ibb);
+        result = compileBlock(block, ibb);
 
         if (result.code == INIT_OK)
         {
@@ -519,7 +519,7 @@ static InitResult populateBlock(IBlockBuilder *ibb, Map_Node *node)
     return result;
 }
 
-static InitResult patch_blocks(IBlockBuilder *ibb)
+static InitResult patchBlocks(IBlockBuilder *ibb)
 {
     struct ReferencedLabels *patch = ibb->referenced_labels;
 
@@ -562,7 +562,7 @@ InitResult bci_initVM_populate(Blocks *blocks)
 
     if (result.code == INIT_OK)
     {
-        result = patch_blocks(ibb);
+        result = patchBlocks(ibb);
     }
 
     if (result.code == INIT_OK)
