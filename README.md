@@ -21,6 +21,6 @@ This byte code interpreter is helpful for running code for a typed language.
 | MUL_S32 | `Stack[SP-2] := Stack[SP-2] * Stack[SP-1] ; SP := SP- 1` | `typeOf(Stack[SP-2]) = S32` and `typeOf(Stack[SP-1]) = S32` | |
 | SUB_S32 | `Stack[SP-2] := Stack[SP-2] - Stack[SP-1] ; SP := SP - 1` | `typeOf(Stack[SP-2]) = S32` and `typeOf(Stack[SP-1]) = S32` | |
 | DIV_S32 | `Stack[SP-2] := Stack[SP-2] / Stack[SP-1] ; SP := SP - 1` | `Stack[SP-1] <> 0` and `typeOf(Stack[SP-2]) = S32` and `typeOf(Stack[SP-1]) = S32` | |
-| JMP n | IP := resolveBlockAddress(n) | | |
-| BLOCK n | addBlockAddress(n, IP) | | |
+| JMP n | `IP := resolveBlockAddress(n)` | | |
+| BLOCK n | `addBlockAddress(n, IP)` | | |
 
