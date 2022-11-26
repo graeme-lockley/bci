@@ -134,7 +134,7 @@ static InitResult verify_target_block_stack(Blocks *blocks, ValueType *stack, in
 
         return result;
     }
-    
+
     return (InitResult){
         .code = INIT_OK,
         .detail.ok.vm = NULL};
@@ -740,6 +740,9 @@ char *bci_initResult_toString(InitResult result)
         break;
     case INIT_BLOCK_INCORRECTLY_TERMINATED:
         sprintf(line, "Block incorrectly terminated at %04x", result.detail.block_incorrectly_terminated.ip);
+        break;
+    case INIT_BLOCK_STACKS_ARE_NOT_EQUAL:
+        sprintf(line, "Block stacks \"%s\" are not equal", result.detail.block_stacks_are_not_equal.label);
         break;
     case INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK:
         sprintf(line, "Ret or Jmp must terminate block at %04x", result.detail.ret_must_terminate_block.ip);
