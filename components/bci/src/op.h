@@ -19,6 +19,7 @@ typedef enum
     EOP_JMP,
     EOP_JMP_TRUE,
     EOP_JMP_FALSE,
+    
     EOP_BLOCK
 } EOp;
 
