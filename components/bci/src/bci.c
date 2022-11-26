@@ -489,9 +489,8 @@ void bci_freeVM(VM *vm)
 #define READ_BYTE_INTO(v) \
     unsigned char v = code[vm->ip++];
 
-#define READ_S32_INTO(v)                        \
-    int32_t v;                                  \
-    memcpy(&v, code + vm->ip, sizeof(int32_t)); \
+#define READ_S32_INTO(v)                       \
+    int32_t v = *((int32_t *)(code + vm->ip)); \
     vm->ip += sizeof(int32_t);
 
 InterpretResult bci_run(VM *vm)
