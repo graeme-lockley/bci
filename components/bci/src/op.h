@@ -17,6 +17,8 @@ typedef enum
     EOP_PUSH_S32,
 
     EOP_JMP,
+    EOP_JMP_TRUE,
+    EOP_JMP_FALSE,
     EOP_BLOCK
 } EOp;
 
@@ -35,7 +37,9 @@ typedef enum
     IOP_PUSH_TRUE,
     IOP_PUSH_S32,
 
-    IOP_JMP
+    IOP_JMP,
+    IOP_JMP_TRUE,
+    IOP_JMP_FALSE
 } IOp;
 
 extern char *EOp_Names[];

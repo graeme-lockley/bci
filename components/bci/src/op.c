@@ -12,11 +12,13 @@ char *EOp_Names[] = {
     "PUSH_TRUE",
     "PUSH_S32",
     "JMP",
+    "JMP_TRUE",
+    "JMP_FALSE",
     "BLOCK"};
 
 char *EOp_name(EOp eop)
 {
-    if (eop < 0 || eop > 11)
+    if (eop < 0 || eop > 13)
     {
         return "UNKNOWN";
     }
@@ -35,11 +37,13 @@ char *IOp_Names[] = {
     "PUSH_FALSE",
     "PUSH_TRUE",
     "PUSH_S32",
-    "JMP"};
+    "JMP",
+    "JMP_TRUE",
+    "JMP_FALSE"};
 
 char *IOp_name(IOp iop)
 {
-    if (iop < 0 || iop > 10)
+    if (iop < 0 || iop > 12)
     {
         return "UNKNOWN";
     }

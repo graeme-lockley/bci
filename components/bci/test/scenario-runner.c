@@ -122,6 +122,14 @@ int append(BlocksBuilder *blocks_builder, BlockBuilder **cb, char *trimmed)
     {
         block_builder_append_string(*cb, EOP_JMP, trimmed + 4);
     }
+    else if (strncmp(trimmed, "JMP_TRUE ", 9) == 0)
+    {
+        block_builder_append_string(*cb, EOP_JMP_TRUE, trimmed + 9);
+    }
+    else if (strncmp(trimmed, "JMP_FALSE ", 10) == 0)
+    {
+        block_builder_append_string(*cb, EOP_JMP_FALSE, trimmed + 10);
+    }
     else if (strncmp(trimmed, "BLOCK ", 6) == 0)
     {
         *cb = blocks_builder_new_block(blocks_builder, trimmed + 6);

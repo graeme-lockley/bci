@@ -247,14 +247,46 @@ static InitResult verifyBlock(Block *block)
             }
         case EOP_JMP:
         {
-            // printf(">>>>>> [%s] [%d] [%d]\n", code + ip, ip, size);
             READ_STRING_INTO(s);
 
             if (ip != size)
             {
-                // printf(">>>>>> [%s] [%d] [%d]\n", s, ip, size);
                 return (InitResult){
                     .code = INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
+                    .detail.ret_must_terminate_block.ip = ip};
+            }
+            else
+            {
+                return (InitResult){
+                    .code = INIT_OK,
+                    .detail.ok.vm = NULL};
+            }
+        }
+        case EOP_JMP_TRUE:
+        {
+            READ_STRING_INTO(s);
+
+            if (sp == 0)
+            {
+                return (InitResult){
+                    .code = INIT_RET_INVALID_STACK,
+                    .detail.ret_must_terminate_block.ip = ip};
+            }
+            else
+            {
+                return (InitResult){
+                    .code = INIT_OK,
+                    .detail.ok.vm = NULL};
+            }
+        }
+        case EOP_JMP_FALSE:
+        {
+            READ_STRING_INTO(s);
+
+            if (sp == 0)
+            {
+                return (InitResult){
+                    .code = INIT_RET_INVALID_STACK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
             else
@@ -323,6 +355,18 @@ static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
         {
             READ_STRING_INTO(s);
             iblock_builder_appendIOPLabel(ibb, IOP_JMP, s);
+            break;
+        }
+        case EOP_JMP_TRUE:
+        {
+            READ_STRING_INTO(s);
+            iblock_builder_appendIOPLabel(ibb, IOP_JMP_TRUE, s);
+            break;
+        }
+        case EOP_JMP_FALSE:
+        {
+            READ_STRING_INTO(s);
+            iblock_builder_appendIOPLabel(ibb, IOP_JMP_FALSE, s);
             break;
         }
         case EOP_BLOCK:
@@ -538,6 +582,26 @@ InterpretResult bci_run(VM *vm)
         {
             READ_S32_INTO(offset);
             vm->ip = offset;
+            break;
+        }
+        case IOP_JMP_TRUE:
+        {
+            READ_S32_INTO(offset);
+            if (vm->stack[vm->sp - 1].detail.s32 == 1)
+            {
+                vm->ip = offset;
+            }
+            vm->sp -= 1;
+            break;
+        }
+        case IOP_JMP_FALSE:
+        {
+            READ_S32_INTO(offset);
+            if (vm->stack[vm->sp - 1].detail.s32 == 0)
+            {
+                vm->ip = offset;
+            }
+            vm->sp -= 1;
             break;
         }
         default:
