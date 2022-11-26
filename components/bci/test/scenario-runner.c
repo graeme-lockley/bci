@@ -76,52 +76,63 @@ static char *run_test(char *scenario, Blocks *blocks, char *expected_result)
     return NULL;
 }
 
-void append(BlockBuilder *cb, char *trimmed)
+int append(BlocksBuilder *blocks_builder, BlockBuilder **cb, char *trimmed)
 {
     if (strcmp(trimmed, "ADD_S32") == 0)
     {
-        block_builder_append(cb, EOP_ADD_S32);
+        block_builder_append(*cb, EOP_ADD_S32);
     }
     else if (strcmp(trimmed, "DIV_S32") == 0)
     {
-        block_builder_append(cb, EOP_DIV_S32);
+        block_builder_append(*cb, EOP_DIV_S32);
     }
     else if (strcmp(trimmed, "MUL_S32") == 0)
     {
-        block_builder_append(cb, EOP_MUL_S32);
+        block_builder_append(*cb, EOP_MUL_S32);
     }
     else if (strcmp(trimmed, "SUB_S32") == 0)
     {
-        block_builder_append(cb, EOP_SUB_S32);
+        block_builder_append(*cb, EOP_SUB_S32);
     }
     else if (strcmp(trimmed, "PUSH_FALSE") == 0)
     {
-        block_builder_append(cb, EOP_PUSH_FALSE);
+        block_builder_append(*cb, EOP_PUSH_FALSE);
     }
     else if (strcmp(trimmed, "PUSH_TRUE") == 0)
     {
-        block_builder_append(cb, EOP_PUSH_TRUE);
+        block_builder_append(*cb, EOP_PUSH_TRUE);
     }
     else if (strcmp(trimmed, "RET") == 0)
     {
-        block_builder_append(cb, EOP_RET);
+        block_builder_append(*cb, EOP_RET);
     }
     else if (strcmp(trimmed, "RET_BOOL") == 0)
     {
-        block_builder_append(cb, EOP_RET_BOOL);
+        block_builder_append(*cb, EOP_RET_BOOL);
     }
     else if (strcmp(trimmed, "RET_S32") == 0)
     {
-        block_builder_append(cb, EOP_RET_S32);
+        block_builder_append(*cb, EOP_RET_S32);
     }
     else if (strncmp(trimmed, "PUSH_S32 ", 8) == 0)
     {
-        block_builder_append_s32(cb, EOP_PUSH_S32, atoi(trimmed + 9));
+        block_builder_append_s32(*cb, EOP_PUSH_S32, atoi(trimmed + 9));
+    }
+    else if (strncmp(trimmed, "JMP ", 4) == 0)
+    {
+        block_builder_append_string(*cb, EOP_JMP, trimmed + 4);
+    }
+    else if (strncmp(trimmed, "BLOCK ", 6) == 0)
+    {
+        *cb = blocks_builder_new_block(blocks_builder, trimmed + 6);
     }
     else
     {
         printf("Unknown instruction: [%s]\n", trimmed);
+        return 0;
     }
+
+    return 1;
 }
 
 char *test_file(char *filename)
@@ -199,7 +210,12 @@ char *test_file(char *filename)
         }
         else if (test_state == 1)
         {
-            append(cb, line);
+            if (!append(blocks_builder, &cb, line)) {
+                fclose(fp);
+                free(line);
+                blocks_builder_free(blocks_builder);
+                return "Unknown instruction";
+            }
         }
 
         free(line);

@@ -8,6 +8,7 @@
 #ifdef DEBUG_MEMORY
 
 extern char *memory_alloc(int32_t size, char *file, int line);
+extern char *memory_strdup(char *str, char *file, int32_t line);
 extern void memory_free(void *ptr, char *file, int32_t line);
 extern int32_t memory_allocated(void);
 
@@ -15,7 +16,7 @@ extern int32_t memory_allocated(void);
     (type *)memory_alloc(sizeof(type) * (count), __FILE__, __LINE__)
 
 #define STRDUP(string) \
-    (char *)memory_alloc(strlen(string) + 1, __FILE__, __LINE__)
+    (char *)memory_strdup(string, __FILE__, __LINE__)
 
 #define REALLOCATE(pointer, type, count) \
     (type *)realloc(pointer, sizeof(type) * (count))

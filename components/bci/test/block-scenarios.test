@@ -153,11 +153,19 @@ RET_S32
 
 
 
-# ### JMP
-# . Block: JMP
-# JMP BLOCK1
+### JMP
+. Block: JMP
+JMP BLOCK1
 
-# BLOCK BLOCK1
-# RET
+BLOCK BLOCK1
+RET
 
-# > OK, result: 0
+> OK, result: 0
+
+. Block: JMP: Unknown label
+JMP BLOCK2
+
+BLOCK BLOCK1
+RET
+
+> Invalid label "BLOCK2"

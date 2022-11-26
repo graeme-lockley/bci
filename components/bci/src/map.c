@@ -4,14 +4,18 @@
 
 #include "map.h"
 
+static void no_free(void *v)
+{
+}
+
 Map *map_new(int (*compare)(void *a, void *b), void (*free_key)(void *key), void (*free_value)(void *value))
 {
     Map *map = ALLOCATE(Map, 1);
 
     map->root = NULL;
     map->compare = compare;
-    map->free_key = free_key;
-    map->free_value = free_value;
+    map->free_key = free_key ? free_key : no_free;
+    map->free_value = free_value ? free_value : no_free;
 
     return map;
 }
@@ -35,8 +39,10 @@ static void map_free_node(Map *root, Map_Node *node)
     {
         map_free_node(root, node->left);
         map_free_node(root, node->right);
+
         root->free_key(node->key);
         root->free_value(node->value);
+
         FREE(node);
     }
 }

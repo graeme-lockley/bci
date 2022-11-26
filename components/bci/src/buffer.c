@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,6 +41,11 @@ int buffer_count(Buffer *sb)
     return sb->items_count;
 }
 
+int buffer_offset(Buffer *sb)
+{
+    return sb->items_count;
+}
+
 void buffer_append(Buffer *sb, void *v, int count)
 {
     if (sb->items_count + count >= sb->buffer_count)
@@ -51,4 +57,15 @@ void buffer_append(Buffer *sb, void *v, int count)
 
     memcpy(sb->buffer + sb->items_count * sb->item_size, v, count * sb->item_size);
     sb->items_count += count;
+}
+
+void buffer_write(Buffer *sb, int offset, void *v, int count)
+{
+    if (offset + count >= sb->items_count)
+    {
+        printf("Illegal: buffer_write: offset + count >= sb->items_count");
+        exit(1);
+    }
+
+    memcpy(sb->buffer + offset * sb->item_size, v, count * sb->item_size);
 }

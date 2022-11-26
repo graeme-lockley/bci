@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "memory.h"
 
@@ -8,6 +9,12 @@ char *memory_alloc(int32_t size, char *file, int32_t line)
 {
     memory_allocated_count += 1;
     return realloc(NULL, size);
+}
+
+char *memory_strdup(char *string, char *file, int32_t line)
+{
+    memory_allocated_count += 1;
+    return strdup(string);
 }
 
 void memory_free(void *ptr, char *file, int32_t line)

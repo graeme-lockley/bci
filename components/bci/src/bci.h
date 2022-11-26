@@ -15,8 +15,9 @@ typedef enum
     INIT_STACK_UNDERFLOW,
     INIT_INVALID_ARGUMENT_TYPES,
     INIT_BLOCK_INCORRECTLY_TERMINATED,
-    INIT_RET_MUST_TERMINATE_BLOCK,
+    INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
     INIT_RET_INVALID_STACK,
+    INIT_INVALID_LABEL
 } InitResultCode;
 
 typedef struct
@@ -59,12 +60,17 @@ typedef struct
 typedef struct
 {
     int32_t ip;
-} RETMustTerminateBlockError;
+} RETOrJMPMustTerminateBlockError;
 
 typedef struct
 {
     int32_t ip;
 } RETInvalidStackError;
+
+typedef struct
+{
+    char label[255];
+} InvalidLabelError;
 
 typedef union
 {
@@ -75,8 +81,9 @@ typedef union
     StackUnderflowError stack_underflow;
     InvalidArgumentTypesError invalid_argument_types;
     BlockIncorrectlyTerminatedError block_incorrectly_terminated;
-    RETMustTerminateBlockError ret_must_terminate_block;
+    RETOrJMPMustTerminateBlockError ret_must_terminate_block;
     RETInvalidStackError ret_invalid_stack;
+    InvalidLabelError invalid_label;
 } InitResultDetail;
 
 typedef struct

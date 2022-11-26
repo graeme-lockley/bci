@@ -16,8 +16,8 @@ typedef enum
     EOP_PUSH_TRUE,
     EOP_PUSH_S32,
 
-    EOP_BLOCK,
-    EOP_JMP
+    EOP_JMP,
+    EOP_BLOCK
 } EOp;
 
 typedef enum

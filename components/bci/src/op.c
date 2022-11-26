@@ -11,8 +11,8 @@ char *EOp_Names[] = {
     "PUSH_FALSE",
     "PUSH_TRUE",
     "PUSH_S32",
-    "BLOCK",
-    "JMP"};
+    "JMP",
+    "BLOCK"};
 
 char *EOp_name(EOp eop)
 {

@@ -23,6 +23,12 @@ void block_builder_append_s32(BlockBuilder *builder, EOp op, int32_t v)
     buffer_append(builder, &v, sizeof(int32_t));
 }
 
+void block_builder_append_string(BlockBuilder *builder, EOp op, char *v)
+{
+    buffer_append(builder, &op, 1);
+    buffer_append(builder, v, sizeof(char) * (strlen(v) + 1));
+}
+
 Block *block_builder_build(BlockBuilder *builder)
 {
     int32_t size = buffer_count(builder);

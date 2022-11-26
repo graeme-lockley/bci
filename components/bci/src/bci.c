@@ -3,20 +3,33 @@
 
 #include "block.h"
 #include "buffer.h"
+#include "map.h"
 #include "memory.h"
 #include "op.h"
 
 #include "bci.h"
 
+struct ReferencedLabels
+{
+    char *label;
+    int32_t offset;
+    struct ReferencedLabels *next;
+};
+
 typedef struct
 {
     Buffer *buffer;
+    struct ReferencedLabels *referenced_labels;
+    Map *labels;
+
 } IBlockBuilder;
 
 IBlockBuilder *iblock_builder_new(void)
 {
     IBlockBuilder *builder = ALLOCATE(IBlockBuilder, 1);
     builder->buffer = buffer_new(sizeof(char));
+    builder->referenced_labels = NULL;
+    builder->labels = map_string_new((void (*)(void *))NULL);
 
     return builder;
 }
@@ -34,9 +47,49 @@ static void iblock_builder_appendIOPS32(IBlockBuilder *ibb, IOp iop, int32_t u32
     buffer_append(ibb->buffer, &u32, sizeof(int32_t));
 }
 
+static void iblock_builder_appendIOPLabel(IBlockBuilder *ibb, IOp iop, char *label)
+{
+    iblock_builder_appendIOP(ibb, iop);
+    int32_t offset = buffer_offset(ibb->buffer);
+    int32_t u32 = 0;
+    buffer_append(ibb->buffer, &u32, sizeof(int32_t));
+
+    struct ReferencedLabels *rl = ALLOCATE(struct ReferencedLabels, 1);
+    rl->label = STRDUP(label);
+    rl->offset = offset;
+    rl->next = ibb->referenced_labels;
+    ibb->referenced_labels = rl;
+}
+
+static void iblock_builder_add_block(IBlockBuilder *ibb, char *name)
+{
+    if (map_get(ibb->labels, name) == NULL)
+    {
+        map_add(ibb->labels, STRDUP(name), (void *)((long)buffer_offset(ibb->buffer)));
+    }
+}
+
+static void referenced_labels_free(struct ReferencedLabels *labels)
+{
+    while (labels)
+    {
+        struct ReferencedLabels *next = labels->next;
+        FREE(labels->label);
+        FREE(labels);
+        labels = next;
+    }
+}
+
+static void iblock_builder_patch_ip(IBlockBuilder *ibb, int32_t offset, int32_t ip)
+{
+    buffer_write(ibb->buffer, offset, &ip, sizeof(int32_t));
+}
+
 static char *iblock_builder_free_use(IBlockBuilder *ibb)
 {
     char *result = buffer_free_use(ibb->buffer);
+    referenced_labels_free(ibb->referenced_labels);
+    map_free(ibb->labels);
     FREE(ibb);
     return result;
 }
@@ -44,8 +97,14 @@ static char *iblock_builder_free_use(IBlockBuilder *ibb)
 static void iblock_builder_free(IBlockBuilder *ibb)
 {
     buffer_free(ibb->buffer);
+    referenced_labels_free(ibb->referenced_labels);
+    map_free(ibb->labels);
     FREE(ibb);
 }
+
+#define READ_STRING_INTO(v)      \
+    char *v = (char *)code + ip; \
+    ip += strlen(v) + 1;
 
 static InitResult verifyBlock(Block *block)
 {
@@ -119,7 +178,7 @@ static InitResult verifyBlock(Block *block)
             if (ip != size)
             {
                 return (InitResult){
-                    .code = INIT_RET_MUST_TERMINATE_BLOCK,
+                    .code = INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
             else if (sp != 0)
@@ -138,7 +197,7 @@ static InitResult verifyBlock(Block *block)
             if (ip != size)
             {
                 return (InitResult){
-                    .code = INIT_RET_MUST_TERMINATE_BLOCK,
+                    .code = INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
             else if (sp != 1)
@@ -164,7 +223,7 @@ static InitResult verifyBlock(Block *block)
             if (ip != size)
             {
                 return (InitResult){
-                    .code = INIT_RET_MUST_TERMINATE_BLOCK,
+                    .code = INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
             else if (sp != 1)
@@ -186,6 +245,25 @@ static InitResult verifyBlock(Block *block)
                     .code = INIT_OK,
                     .detail.ok.vm = NULL};
             }
+        case EOP_JMP:
+        {
+            // printf(">>>>>> [%s] [%d] [%d]\n", code + ip, ip, size);
+            READ_STRING_INTO(s);
+
+            if (ip != size)
+            {
+                // printf(">>>>>> [%s] [%d] [%d]\n", s, ip, size);
+                return (InitResult){
+                    .code = INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
+                    .detail.ret_must_terminate_block.ip = ip};
+            }
+            else
+            {
+                return (InitResult){
+                    .code = INIT_OK,
+                    .detail.ok.vm = NULL};
+            }
+        }
         default:
             return (InitResult){
                 .code = INIT_INVALID_INSTRUCTION,
@@ -194,6 +272,11 @@ static InitResult verifyBlock(Block *block)
         }
     }
 }
+#undef READ_STRING_INTO
+
+#define READ_STRING_INTO(v)             \
+    char *v = (char *)block->code + ip; \
+    ip += strlen(v) + 1;
 
 static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
 {
@@ -236,6 +319,19 @@ static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
         case EOP_RET_S32:
             iblock_builder_appendIOP(ibb, IOP_RET_S32);
             break;
+        case EOP_JMP:
+        {
+            READ_STRING_INTO(s);
+            iblock_builder_appendIOPLabel(ibb, IOP_JMP, s);
+            break;
+        }
+        case EOP_BLOCK:
+        {
+            READ_STRING_INTO(s);
+            ip += strlen(s) + 1;
+
+            break;
+        }
         default:
             return (InitResult){
                 .code = INIT_INVALID_INSTRUCTION,
@@ -248,12 +344,14 @@ static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
         .code = INIT_OK,
         .detail.ok.vm = NULL};
 }
+#undef READ_STRING_INTO
 
 static InitResult populateBlock(IBlockBuilder *ibb, Map_Node *node)
 {
     if (node)
     {
         Block *block = (Block *)node->value;
+        iblock_builder_add_block(ibb, node->key);
         InitResult result = verifyBlock(block);
 
         if (result.code == INIT_OK)
@@ -279,11 +377,44 @@ static InitResult populateBlock(IBlockBuilder *ibb, Map_Node *node)
     }
 }
 
+static InitResult bci_patch_blocks(IBlockBuilder *ibb)
+{
+    struct ReferencedLabels *patch = ibb->referenced_labels;
+
+    while (patch)
+    {
+        int32_t ip = (int32_t)((long)map_get(ibb->labels, patch->label));
+
+        if (ip == 0)
+        {
+            InitResult result;
+
+            result.code = INIT_INVALID_LABEL;
+            strcpy(result.detail.invalid_label.label, patch->label);
+
+            return result;
+        }
+
+        iblock_builder_patch_ip(ibb, patch->offset, ip);
+
+        patch = patch->next;
+    }
+
+    return (InitResult){
+        .code = INIT_OK,
+        .detail.ok.vm = NULL};
+}
+
 InitResult bci_initVM_populate(Blocks *blocks)
 {
     IBlockBuilder *ibb = iblock_builder_new();
 
     InitResult result = populateBlock(ibb, blocks->root);
+
+    if (result.code == INIT_OK)
+    {
+        result = bci_patch_blocks(ibb);
+    }
 
     if (result.code == INIT_OK)
     {
@@ -294,7 +425,9 @@ InitResult bci_initVM_populate(Blocks *blocks)
         vm->sp = 0;
 
         result.detail.ok.vm = vm;
-    } else {
+    }
+    else
+    {
         iblock_builder_free(ibb);
     }
 
@@ -401,6 +534,12 @@ InterpretResult bci_run(VM *vm)
                 .code = INTERPRET_OK,
                 .detail.ok.result = vm->stack[vm->sp - 1].detail.s32};
 
+        case IOP_JMP:
+        {
+            READ_S32_INTO(offset);
+            vm->ip = offset;
+            break;
+        }
         default:
             return (InterpretResult){
                 .code = INTERPRET_INVALID_INSTRUCTION,
@@ -434,11 +573,14 @@ char *bci_initResult_toString(InitResult result)
     case INIT_BLOCK_INCORRECTLY_TERMINATED:
         sprintf(line, "Block incorrectly terminated at %04x", result.detail.block_incorrectly_terminated.ip);
         break;
-    case INIT_RET_MUST_TERMINATE_BLOCK:
-        sprintf(line, "Ret must terminate block at %04x", result.detail.ret_must_terminate_block.ip);
+    case INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK:
+        sprintf(line, "Ret or Jmp must terminate block at %04x", result.detail.ret_must_terminate_block.ip);
         break;
     case INIT_RET_INVALID_STACK:
         sprintf(line, "Ret invalid stack at %04x", result.detail.ret_invalid_stack.ip);
+        break;
+    case INIT_INVALID_LABEL:
+        sprintf(line, "Invalid label \"%s\"", result.detail.invalid_label.label);
         break;
     default:
         sprintf(line, "Unknown error %04x", result.code);
@@ -457,7 +599,7 @@ char *bci_interpretResult_toString(InterpretResult result)
         sprintf(line, "OK, result: %d", result.detail.ok.result);
         break;
     case INTERPRET_INVALID_INSTRUCTION:
-        sprintf(line, "Invalid instruction %s at %04x", EOp_name(result.detail.invalid_instruction.instruction), result.detail.invalid_instruction.ip);
+        sprintf(line, "Invalid instruction %s at %04x", IOp_name(result.detail.invalid_instruction.instruction), result.detail.invalid_instruction.ip);
         break;
     case INTERPRET_DIVISION_BY_ZERO:
         sprintf(line, "Division by zero at %04x", result.detail.division_by_zero.ip);
