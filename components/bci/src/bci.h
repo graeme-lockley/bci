@@ -15,6 +15,7 @@ typedef enum
     INIT_STACK_UNDERFLOW,
     INIT_INVALID_ARGUMENT_TYPES,
     INIT_BLOCK_INCORRECTLY_TERMINATED,
+    INIT_BLOCK_STACKS_ARE_NOT_EQUAL,
     INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
     INIT_RET_INVALID_STACK,
     INIT_INVALID_LABEL
@@ -59,6 +60,11 @@ typedef struct
 
 typedef struct
 {
+    char label[255];
+} BlockStacksAreNotEqualError;
+
+typedef struct
+{
     int32_t ip;
 } RETOrJMPMustTerminateBlockError;
 
@@ -81,6 +87,7 @@ typedef union
     StackUnderflowError stack_underflow;
     InvalidArgumentTypesError invalid_argument_types;
     BlockIncorrectlyTerminatedError block_incorrectly_terminated;
+    BlockStacksAreNotEqualError block_stacks_are_not_equal;
     RETOrJMPMustTerminateBlockError ret_must_terminate_block;
     RETInvalidStackError ret_invalid_stack;
     InvalidLabelError invalid_label;
@@ -91,7 +98,6 @@ typedef struct
     InitResultCode code;
     InitResultDetail detail;
 } InitResult;
-
 
 typedef enum
 {
@@ -123,12 +129,6 @@ typedef struct
     InterpretResultCode code;
     ResultDetail detail;
 } InterpretResult;
-
-typedef enum
-{
-    VT_S32,
-    VT_BOOL
-} ValueType;
 
 typedef union
 {

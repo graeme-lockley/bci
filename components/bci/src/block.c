@@ -10,6 +10,11 @@ Block *block_new_populate(char *code, int32_t size)
     block->code = code;
     block->size = size;
 
+    block->types = NULL;
+    block->types_size = -1;
+
+    block->verified = 0;
+
     return block;
 }
 
@@ -19,6 +24,13 @@ void block_free(Block *block)
 
     block->code = NULL;
     block->size = 0;
+
+    if (block->types)
+    {
+        FREE(block->types);
+        block->types = NULL;
+        block->types_size = -1;
+    }
 
     FREE(block);
 }

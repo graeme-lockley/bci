@@ -106,14 +106,50 @@ static void iblock_builder_free(IBlockBuilder *ibb)
     char *v = (char *)code + ip; \
     ip += strlen(v) + 1;
 
-static InitResult verifyBlock(Block *block)
+static InitResult verify_target_block_stack(Blocks *blocks, ValueType *stack, int32_t sp, char *target_block_name)
+{
+    Block *target = map_get(blocks, target_block_name);
+
+    if (target == NULL)
+    {
+        InitResult result;
+
+        result.code = INIT_INVALID_LABEL;
+        strcpy(result.detail.invalid_label.label, target_block_name);
+
+        return result;
+    }
+    else if (target->types_size == -1)
+    {
+        target->types = ALLOCATE(ValueType, sp);
+        target->types_size = sp;
+        memcpy(target->types, stack, sp * sizeof(ValueType));
+    }
+    else if (target->types_size != sp || memcmp(target->types, stack, sp * sizeof(ValueType)) != 0)
+    {
+        InitResult result;
+
+        result.code = INIT_BLOCK_STACKS_ARE_NOT_EQUAL;
+        strcpy(result.detail.block_stacks_are_not_equal.label, target_block_name);
+
+        return result;
+    }
+    
+    return (InitResult){
+        .code = INIT_OK,
+        .detail.ok.vm = NULL};
+}
+
+static InitResult verifyBlock(Blocks *blocks, Block *block)
 {
     char *code = block->code;
     const int32_t size = block->size;
 
     int32_t ip = 0;
-    int32_t sp = 0;
+    int32_t sp = block->types_size;
     ValueType stack[STACK_SIZE];
+
+    memcpy(stack, block->types, block->types_size * sizeof(ValueType));
 
     for (;;)
     {
@@ -255,12 +291,8 @@ static InitResult verifyBlock(Block *block)
                     .code = INIT_RET_OR_JMP_MUST_TERMINATE_BLOCK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
-            else
-            {
-                return (InitResult){
-                    .code = INIT_OK,
-                    .detail.ok.vm = NULL};
-            }
+
+            return verify_target_block_stack(blocks, stack, sp, s);
         }
         case EOP_JMP_TRUE:
         {
@@ -272,12 +304,17 @@ static InitResult verifyBlock(Block *block)
                     .code = INIT_RET_INVALID_STACK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
-            else
+            else if (stack[sp - 1] != VT_BOOL)
             {
                 return (InitResult){
-                    .code = INIT_OK,
-                    .detail.ok.vm = NULL};
+                    .code = INIT_INVALID_ARGUMENT_TYPES,
+                    .detail.invalid_argument_types.ip = ip,
+                    .detail.invalid_argument_types.instruction = op};
             }
+
+            sp -= 1;
+
+            return verify_target_block_stack(blocks, stack, sp, s);
         }
         case EOP_JMP_FALSE:
         {
@@ -289,12 +326,17 @@ static InitResult verifyBlock(Block *block)
                     .code = INIT_RET_INVALID_STACK,
                     .detail.ret_must_terminate_block.ip = ip};
             }
-            else
+            else if (stack[sp - 1] != VT_BOOL)
             {
                 return (InitResult){
-                    .code = INIT_OK,
-                    .detail.ok.vm = NULL};
+                    .code = INIT_INVALID_ARGUMENT_TYPES,
+                    .detail.invalid_argument_types.ip = ip,
+                    .detail.invalid_argument_types.instruction = op};
             }
+
+            sp -= 1;
+
+            return verify_target_block_stack(blocks, stack, sp, s);
         }
         default:
             return (InitResult){
@@ -390,38 +432,94 @@ static InitResult bci_compileBlock(Block *block, IBlockBuilder *ibb)
 }
 #undef READ_STRING_INTO
 
+static void initialiseInitialBlockStack(Block *initialBlock)
+{
+    initialBlock->types = ALLOCATE(ValueType, 1);
+    initialBlock->types_size = 0;
+}
+
+static InitResult validateIndividualBlock(Blocks *blocks, Map_Node *node, int *block_updated)
+{
+    InitResult result = (InitResult){
+        .code = INIT_OK,
+        .detail.ok.vm = NULL};
+
+    if (node)
+    {
+        Block *block = (Block *)node->value;
+
+        if (!block->verified && block->types_size >= 0)
+        {
+            result = verifyBlock(blocks, block);
+
+            block->verified = 1;
+        }
+
+        if (result.code == INIT_OK)
+        {
+            result = validateIndividualBlock(blocks, node->left, block_updated);
+        }
+        if (result.code == INIT_OK)
+        {
+            result = validateIndividualBlock(blocks, node->right, block_updated);
+        }
+    }
+
+    return result;
+}
+
+static InitResult validateBlocks(Blocks *blocks)
+{
+    initialiseInitialBlockStack(blocks->root->value);
+
+    while (1)
+    {
+        int block_updated = 0;
+
+        InitResult result = validateIndividualBlock(blocks, blocks->root, &block_updated);
+
+        if (result.code != INIT_OK)
+        {
+            return result;
+        }
+
+        if (!block_updated)
+        {
+            return (InitResult){
+                .code = INIT_OK,
+                .detail.ok.vm = NULL};
+        }
+    }
+}
+
 static InitResult populateBlock(IBlockBuilder *ibb, Map_Node *node)
 {
+    InitResult result = (InitResult){
+        .code = INIT_OK,
+        .detail.ok.vm = NULL};
+
     if (node)
     {
         Block *block = (Block *)node->value;
         iblock_builder_add_block(ibb, node->key);
-        InitResult result = verifyBlock(block);
 
-        if (result.code == INIT_OK)
-        {
-            result = bci_compileBlock(block, ibb);
-        }
+        result = bci_compileBlock(block, ibb);
 
         if (result.code == INIT_OK)
         {
             result = populateBlock(ibb, node->left);
         }
+
         if (result.code == INIT_OK)
         {
             result = populateBlock(ibb, node->right);
         }
-        return result;
     }
-    else
-    {
-        return (InitResult){
-            .code = INIT_OK,
-            .detail.ok.vm = NULL};
-    }
+
+    return result;
 }
 
-static InitResult bci_patch_blocks(IBlockBuilder *ibb)
+static InitResult patch_blocks(IBlockBuilder *ibb)
 {
     struct ReferencedLabels *patch = ibb->referenced_labels;
 
@@ -451,13 +549,20 @@ static InitResult bci_patch_blocks(IBlockBuilder *ibb)
 
 InitResult bci_initVM_populate(Blocks *blocks)
 {
+    InitResult result = validateBlocks(blocks);
+    if (result.code != INIT_OK)
+    {
+        blocks_free(blocks);
+        return result;
+    }
+
     IBlockBuilder *ibb = iblock_builder_new();
 
-    InitResult result = populateBlock(ibb, blocks->root);
+    result = populateBlock(ibb, blocks->root);
 
     if (result.code == INIT_OK)
     {
-        result = bci_patch_blocks(ibb);
+        result = patch_blocks(ibb);
     }
 
     if (result.code == INIT_OK)
