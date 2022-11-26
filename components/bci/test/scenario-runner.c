@@ -185,7 +185,7 @@ char *test_file(char *filename)
         {
             test_scenario = trim_preserve(line + 1);
             blocks_builder = blocks_builder_new();
-            cb = blocks_builder_new_block(blocks_builder, "main");
+            cb = blocks_builder_new_block(blocks_builder, "@main");
             test_state = 1;
         }
         else if (line[0] == '>')
